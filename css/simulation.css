@@ -1,0 +1,184 @@
+/* 综合模拟样式 */
+
+.sim-note {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.sim-picker {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.sim-pick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  font-family: var(--font-cn);
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sim-pick-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.sim-pick-btn strong { color: var(--accent); font-size: 0.85rem; }
+.sim-pick-btn span { font-size: 0.92rem; color: var(--text); }
+
+.sim-back {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-cn);
+  font-size: 0.88rem;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+  padding: 0;
+}
+
+.sim-prompt {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--en-block-bg, #faf9f7);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+}
+
+.sim-chart { margin: 1rem 0 1.25rem; }
+
+.sim-write-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 0.5rem;
+}
+
+.sim-textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  resize: vertical;
+  min-height: 220px;
+}
+
+.sim-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.sim-wordcount {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0.5rem 0 0.25rem;
+  text-align: right;
+}
+
+.sim-save-hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0.5rem 0 1rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--note);
+  border: 1px solid var(--note-border);
+  border-radius: 8px;
+}
+
+.sim-save-hint--feedback {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+
+.sim-submit {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-cn);
+}
+
+.sim-submit:hover { opacity: 0.92; }
+
+.sim-no-score {
+  font-size: 0.82rem;
+  color: var(--accent-2);
+  background: var(--note);
+  border: 1px solid var(--note-border);
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.sim-rule-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.55;
+}
+
+.sim-fb-section {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.sim-fb-section.ok { background: #e8f5e9; border-color: #81c784; }
+.sim-fb-section.warn { background: var(--note); border-color: var(--note-border); }
+
+.sim-fb-section h3 {
+  font-size: 0.92rem;
+  margin-bottom: 0.45rem;
+}
+
+.sim-fb-section ul {
+  margin-left: 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+[data-theme="dark"] .sim-fb-section.ok { background: #1a2e1f; border-color: #4a7a52; }
+
+.badge-wall-grid { min-height: 80px; }
+
+.badge-module-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.badge-module-row .badge-card { flex: 0 0 auto; min-width: 120px; }
+
+.badge-progress {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.badge-progress.done { color: var(--accent-2); font-weight: 600; }
+
+.badge-modules-list { margin-top: 0.75rem; }

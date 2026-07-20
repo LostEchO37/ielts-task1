@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>雅思作文教程（简化版）</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/quiz.css">
+  <link rel="stylesheet" href="css/user.css">
+</head>
+<body>
+  <div class="cover-page">
+    <div class="cover-inner" data-s2t-scope>
+      <div class="cover-badge" data-i18n="cover.badge">IELTS WRITING · 简化版教程</div>
+      <h1 class="cover-title" data-i18n="cover.title">雅思作文教程</h1>
+      <p class="cover-subtitle" data-i18n="cover.sub">本网站是雅思写作完整教程的简化版，涵盖小作文、大作文及更多模块。</p>
+
+      <div class="cover-modules">
+        <h3 data-i18n="cover.modules">模块一览</h3>
+        <ul class="cover-module-list">
+          <li class="open">
+            <span class="module-tag live" data-i18n="cover.live">已开放</span>
+            <span data-i18n="cover.mod1">小作文 · 动态图（时间 + 数据变化）</span>
+          </li>
+          <li class="soon">
+            <span class="module-tag pending" data-i18n="cover.pending">待更新</span>
+            <span data-i18n="cover.mod2">小作文 · 静态图</span>
+          </li>
+          <li class="soon">
+            <span class="module-tag pending" data-i18n="cover.pending">待更新</span>
+            <span data-i18n="cover.mod3">大作文</span>
+          </li>
+          <li class="soon">
+            <span class="module-tag pending" data-i18n="cover.pending">待更新</span>
+            <span data-i18n="cover.mod4">其他模块</span>
+          </li>
+        </ul>
+      </div>
+
+      <p class="cover-signature"><span data-i18n="cover.signature">Proudly presented by</span> <em>037、</em></p>
+      <p class="cover-notice" data-i18n="cover.notice">本网站及相关内容均为个人创作者原创，禁止转发。</p>
+
+      <a class="cover-btn" href="home.html" id="cover-start" data-i18n="cover.start">开始学习</a>
+    </div>
+  </div>
+  <script src="js/s2t-map.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/user.js"></script>
+  <script src="js/user-ui.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("cover-start");
+      btn.addEventListener("click", (e) => {
+        if (!UserStore.current()) {
+          e.preventDefault();
+          UserUI.showOnboarding(() => { location.href = "home.html"; });
+        }
+      });
+      if (!UserStore.current()) UserUI.showOnboarding();
+    });
+  </script>
+</body>
+</html>
