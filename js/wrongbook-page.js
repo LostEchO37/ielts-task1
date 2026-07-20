@@ -69,12 +69,6 @@ function renderWrongbook() {
   html += `</div>`;
 
   el.innerHTML = html;
-
-  el.querySelectorAll(".wb-practice-btn").forEach((btn) => {
-    btn.onclick = () => {
-      QuizEngine.init(btn.dataset.module, { mode: "wrongbook" });
-    };
-  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

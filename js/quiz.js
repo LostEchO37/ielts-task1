@@ -70,6 +70,8 @@ const QuizEngine = {
   startWrongBook(questionIds) {
     this.mode = "wrongbook";
     this.difficulty = 0;
+    const overlay = document.getElementById("quiz-overlay");
+    if (!overlay) return;
     const list = UserStore.getWrongList(this.moduleId);
     const ids = questionIds || list.map((w) => w.questionId);
     this.questions = ids
@@ -77,9 +79,10 @@ const QuizEngine = {
       .filter(Boolean);
     if (!this.questions.length) {
       alert(t("wrongbook.emptyModule"));
-      this.showPicker();
+      if (this.module) this.showPicker();
       return;
     }
+    overlay.classList.add("open");
     this.questions = this.shuffle(this.questions);
     this.index = 0;
     this.score = 0;
@@ -107,6 +110,8 @@ const QuizEngine = {
     const q = this.questions[this.index];
     const total = this.questions.length;
     const overlay = document.getElementById("quiz-overlay");
+    if (!overlay) return;
+    overlay.classList.add("open");
     const modeTag = this.mode === "wrongbook"
       ? `<div class="quiz-mode-tag">📕 ${t("quiz.wrongMode")}</div>` : "";
     const chartHtml = q.chart
@@ -292,6 +297,13 @@ const QuizEngine = {
     if (fab && fab.dataset.module) {
       e.preventDefault();
       QuizEngine.init(fab.dataset.module);
+      return;
+    }
+
+    const wbPractice = e.target.closest(".wb-practice-btn");
+    if (wbPractice && wbPractice.dataset.module && document.getElementById("wrongbook-content")) {
+      e.preventDefault();
+      QuizEngine.init(wbPractice.dataset.module, { mode: "wrongbook" });
       return;
     }
 
