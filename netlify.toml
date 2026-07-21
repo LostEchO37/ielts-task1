@@ -1,6 +1,25 @@
-# Netlify static site — no build step needed
+# Netlify static site + serverless analytics
 [build]
+  command = "npm install && npm install --prefix netlify/functions"
   publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/**"]
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/track"
+  to = "/.netlify/functions/track"
+  status = 200
+
+[[redirects]]
+  from = "/api/stats"
+  to = "/.netlify/functions/stats"
+  status = 200
 
 [[headers]]
   for = "/*"

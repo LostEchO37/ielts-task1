@@ -545,3 +545,13 @@ body:has(.cover-page) .settings-btn {
 body:has(.cover-page) .settings-btn:hover {
   background: rgba(255, 255, 255, 0.22);
 }
+
+body:has(.cover-page) .reward-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+body:has(.cover-page) .reward-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}

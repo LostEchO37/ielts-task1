@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>访问统计 · 管理</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/quiz.css">
+  <style>
+    .stats-wrap { max-width: 960px; margin: 2rem auto; padding: 0 1.25rem 3rem; }
+    .stats-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+    .stats-card h1 { font-size: 1.35rem; color: var(--accent); margin-bottom: 0.35rem; }
+    .stats-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem; }
+    .stats-login { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .stats-login input { flex: 1; min-width: 180px; padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-cn); }
+    .stats-login button { padding: 0.55rem 1rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: var(--font-cn); }
+    .stats-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+    .stats-kpi { background: var(--accent-light); border-radius: 10px; padding: 0.85rem; text-align: center; }
+    .stats-kpi strong { display: block; font-size: 1.5rem; color: var(--accent); }
+    .stats-kpi span { font-size: 0.78rem; color: var(--muted); }
+    .stats-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .stats-table th, .stats-table td { border: 1px solid var(--border); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; word-break: break-all; }
+    .stats-table th { background: var(--accent-light); color: var(--accent); }
+    .stats-err { color: var(--accent-2); font-size: 0.88rem; }
+    .hidden { display: none !important; }
+    @media (max-width: 720px) { .stats-kpis { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="stats-wrap">
+    <div class="stats-card">
+      <h1>访问统计</h1>
+      <p class="stats-sub">需在 Netlify 环境变量中设置 <code>ADMIN_STATS_TOKEN</code>，仅管理员可查看。</p>
+      <div class="stats-login">
+        <input type="password" id="stats-token" placeholder="管理口令" autocomplete="off">
+        <button type="button" id="stats-load">加载数据</button>
+      </div>
+      <p class="stats-err hidden" id="stats-err"></p>
+      <div id="stats-body" class="hidden">
+        <div class="stats-kpis">
+          <div class="stats-kpi"><strong id="kpi-total">—</strong><span>累计记录</span></div>
+          <div class="stats-kpi"><strong id="kpi-today">—</strong><span>今日访问</span></div>
+          <div class="stats-kpi"><strong id="kpi-shown">—</strong><span>本次显示</span></div>
+        </div>
+        <h3 style="font-size:0.95rem;margin:0.75rem 0 0.5rem;color:var(--accent);">页面热度</h3>
+        <table class="stats-table" id="top-pages"><thead><tr><th>页面</th><th>次数</th></tr></thead><tbody></tbody></table>
+        <h3 style="font-size:0.95rem;margin:1rem 0 0.5rem;color:var(--accent);">最近访问</h3>
+        <table class="stats-table" id="visit-log"><thead><tr><th>时间</th><th>页面</th><th>来源</th><th>设备</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <p style="font-size:0.82rem;"><a href="index.html">← 返回网站</a></p>
+  </div>
+  <script src="js/stats-page.js"></script>
+</body>
+</html>
