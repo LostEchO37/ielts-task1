@@ -22,6 +22,10 @@
   box-shadow: 0 10px 32px rgba(196, 92, 62, 0.5);
 }
 
+body:has(.page-disclaimer) .quiz-fab {
+  bottom: 3.5rem;
+}
+
 #quiz-overlay {
   position: fixed;
   inset: 0;
@@ -296,7 +300,8 @@
 }
 
 @media (max-width: 860px) {
-  .quiz-fab { right: 1rem; bottom: 1.25rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; }
+  .quiz-fab { right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.88rem; }
+  body:has(.page-disclaimer) .quiz-fab { bottom: 3.5rem; }
   .quiz-difficulty { grid-template-columns: 1fr; }
   .page-chrome { top: 0.75rem; right: 0.75rem; }
   .settings-btn { top: 0.75rem; right: 0.75rem; }

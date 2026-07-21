@@ -1,22 +1,27 @@
 /* 用户界面 — 注册弹窗 · 侧边栏 · 导航注入 */
 
 const UserUI = {
+  rootPrefix() {
+    return location.pathname.includes("/static/") ? "../" : "";
+  },
+
   injectSidebar() {
     const sidebar = document.querySelector(".sidebar");
     const nav = document.querySelector(".sidebar nav");
     if (!sidebar || sidebar.querySelector(".sidebar-user")) return;
 
+    const root = this.rootPrefix();
     const userBar = document.createElement("div");
     userBar.className = "sidebar-user";
     userBar.innerHTML = `<span class="sidebar-user-label" data-i18n="user.greeting">你好，</span><strong id="sidebar-username">—</strong>`;
     sidebar.insertBefore(userBar, nav);
 
-    if (nav && !nav.querySelector('[href="profile.html"]')) {
+    if (nav && !nav.querySelector("[data-nav-profile]")) {
       const block = document.createElement("div");
       block.innerHTML = `
         <div class="nav-section" data-i18n="nav.my">我的</div>
-        <a class="nav-link" href="profile.html" data-i18n="nav.profile">勋章墙</a>
-        <a class="nav-link" href="wrongbook.html" data-i18n="nav.wrongbook">错题本 <span class="nav-badge wrong-count hidden" id="nav-wrong-count">0</span></a>`;
+        <a class="nav-link" href="${root}profile.html" data-nav-profile data-i18n="nav.profile">勋章墙</a>
+        <a class="nav-link" href="${root}wrongbook.html" data-i18n="nav.wrongbook">错题本 <span class="nav-badge wrong-count hidden" id="nav-wrong-count">0</span></a>`;
       nav.appendChild(block);
     }
 

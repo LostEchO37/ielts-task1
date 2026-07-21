@@ -12,6 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const current = location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-link').forEach((link) => {
-    if (link.getAttribute('href') === current) link.classList.add('active');
+    const href = link.getAttribute('href') || '';
+    if (href === current || href.endsWith('/' + current)) link.classList.add('active');
   });
+
+  const file = location.pathname.split('/').pop();
+  if (file && file !== 'index.html' && file !== 'stats.html') {
+    const inStatic = /\/static\//.test(location.pathname);
+    const rel = inStatic ? `static/${file}` : file;
+    try { localStorage.setItem('ielts-last-module', rel); } catch { /* ignore */ }
+  }
 });

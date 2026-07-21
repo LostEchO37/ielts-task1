@@ -4,6 +4,18 @@ const SimEngine = {
   currentId: null,
   _bound: false,
 
+  simLabel(sim, index) {
+    return sim.isStatic ? t("static.sim.label") : t("sim.label");
+  },
+
+  simSubtitle(title) {
+    return title.replace(/^(?:Static )?Sim(?:ulation)? \d+ · /i, "");
+  },
+
+  simHeading(sim, index) {
+    return `${this.simLabel(sim, index)} ${index + 1} · ${this.simSubtitle(sim.title)}`;
+  },
+
   bindEvents() {
     if (this._bound) return;
     this._bound = true;
@@ -59,8 +71,8 @@ const SimEngine = {
         <p class="sim-note" data-i18n="sim.note">含真实图表 · 仿雅思题干 · 提交后获得语法与笔记知识点改进建议（不估分）</p>
         <div class="sim-picker">${SIMULATIONS.map((s, i) => `
           <button type="button" class="sim-pick-btn" data-id="${s.id}">
-            <strong>${t("sim.label")} ${i + 1}</strong>
-            <span>${s.title.replace(/^Simulation \d · /, "")}</span>
+            <strong>${SimEngine.simLabel(s, i)} ${i + 1}</strong>
+            <span>${SimEngine.simSubtitle(s.title)}</span>
           </button>`).join("")}
         </div>
       </div>`;
@@ -74,10 +86,11 @@ const SimEngine = {
     const draft = UserStore.getSimulationDraft(id);
     const el = document.getElementById("sim-content");
     if (!el) return;
+    const simIndex = SIMULATIONS.findIndex((s) => s.id === id);
     el.innerHTML = `
       <div class="card sim-task">
         <button type="button" class="sim-back" id="sim-back">← ${t("sim.back")}</button>
-        <h2>${sim.title}</h2>
+        <h2>${this.simHeading(sim, simIndex)}</h2>
         <div class="sim-prompt en-block">${sim.prompt.replace(/\n/g, "<br>")}</div>
         <div class="chart-wrap sim-chart">
           <img src="${sim.chart}" alt="${sim.chartAlt}">
@@ -118,6 +131,7 @@ const SimEngine = {
   },
 
   analyse(text, sim) {
+    if (sim.isStatic) return this.analyseStatic(text, sim);
     const raw = text.trim();
     const lower = raw.toLowerCase();
     const words = raw.split(/\s+/).filter(Boolean);
@@ -219,6 +233,69 @@ const SimEngine = {
       compareItems.push(t("sim.fb.timePhraseOk"));
     } else compareItems.push(t("sim.fb.timePhraseMiss"));
     sections.push({ icon: "📊", title: t("sim.fb.data"), ok: /compared|higher|lower|most|least/.test(lower), items: compareItems });
+
+    return sections;
+  },
+
+  analyseStatic(text, sim) {
+    const raw = text.trim();
+    const lower = raw.toLowerCase();
+    const words = raw.split(/\s+/).filter(Boolean);
+    const wc = words.length;
+    const sections = [];
+
+    const lengthItems = [];
+    if (wc < 120) lengthItems.push(t("sim.fb.tooShort"));
+    else if (wc < 150) lengthItems.push(t("sim.fb.near150"));
+    else lengthItems.push(t("sim.fb.lengthOk", { n: wc }));
+    sections.push({ icon: "📏", title: t("sim.fb.length"), ok: wc >= 150, items: lengthItems });
+
+    const openItems = [];
+    const hasOpen = /illustrates|shows|compares|depicts|presents|gives information/.test(lower);
+    const changesMisuse = /changes in|over a span of|over the period|over \d+ years/.test(lower);
+    if (hasOpen && !changesMisuse) openItems.push(t("static.sim.fb.openOk"));
+    else if (changesMisuse) openItems.push(t("static.sim.fb.changesMisuse"));
+    else openItems.push(t("static.sim.fb.openMiss"));
+    const hasOverall = /overall|in general|generally|it can be observed|it is also evident/.test(lower);
+    const overallTrendMisuse = /upward trend|downward trend|with the exception of.*(?:declin|increas|rose|fell)/.test(lower);
+    if (hasOverall && !overallTrendMisuse) openItems.push(t("static.sim.fb.overallOk"));
+    else if (overallTrendMisuse) openItems.push(t("static.sim.fb.overallTrendMisuse"));
+    else openItems.push(t("static.sim.fb.overallMiss"));
+    sections.push({ icon: "📝", title: t("sim.fb.structure"), ok: hasOpen && !changesMisuse, items: openItems });
+
+    const tenseItems = [];
+    const present = (lower.match(/\b(is|are|was|were|accounts for|stands at|represents|constitutes)\b/g) || []).length;
+    if (/shows|illustrates|depicts/.test(lower) && !/increased|decreased|rose|fell/.test(lower)) {
+      tenseItems.push(t("static.sim.fb.presentOk"));
+    } else if (/increased|decreased|rose|fell|over the period|between \d{4}/.test(lower)) {
+      tenseItems.push(t("static.sim.fb.trendMisuse"));
+    } else tenseItems.push(t("static.sim.fb.presentMiss"));
+    sections.push({ icon: "⏰", title: t("sim.fb.tense"), ok: present >= 2, items: tenseItems });
+
+    const bonusItems = [];
+    if (/prominent features|in terms of|what also stands out/.test(lower)) {
+      bonusItems.push(t("static.sim.fb.linkOk"));
+    } else bonusItems.push(t("static.sim.fb.linkMiss"));
+    if (/similar|comparable|respectively|double|triple|times that|percentage points|taking up|standing at|%/.test(lower)) {
+      bonusItems.push(t("static.sim.fb.compareOk"));
+    } else bonusItems.push(t("static.sim.fb.compareMiss"));
+    sections.push({ icon: "⭐", title: t("static.sim.fb.bonus"), ok: bonusItems.length >= 2, items: bonusItems });
+
+    const gramItems = SimLint.checkGrammar(raw);
+    const gramOk = gramItems.length === 0;
+    if (gramOk) gramItems.push(t("sim.fb.grammarClean"));
+    sections.push({ icon: "✏️", title: t("sim.fb.grammar"), ok: gramOk, items: gramItems });
+
+    const spellErrors = SimLint.checkSpelling(raw);
+    const spellItems = spellErrors.length ? spellErrors.map((e) =>
+      e.suggestion ? t("sim.fb.spellErr", { word: e.word, sug: e.suggestion }) : t("sim.fb.spellUnknown", { word: e.word })
+    ) : [t("sim.fb.spellOk")];
+    sections.push({ icon: "🔤", title: t("sim.fb.spelling"), ok: !spellErrors.length, items: spellItems });
+
+    const numItems = [];
+    if (/\d+/.test(raw)) numItems.push(t("static.sim.fb.numOk"));
+    else numItems.push(t("static.sim.fb.numMiss"));
+    sections.push({ icon: "🔢", title: t("static.sim.fb.numbers"), ok: /\d+/.test(raw), items: numItems });
 
     return sections;
   }

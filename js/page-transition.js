@@ -47,6 +47,7 @@ const PageTransition = {
     });
 
     const cleanup = () => {
+      if (!document.body.classList.contains("page-entering")) return;
       veil.remove();
       document.body.classList.remove("page-entering", "page-enter-active");
       document.documentElement.classList.remove("ielts-enter-boot");

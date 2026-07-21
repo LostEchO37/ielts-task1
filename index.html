@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/quiz.css">
   <link rel="stylesheet" href="css/page-transition.css">
   <link rel="stylesheet" href="css/user.css">
+  <link rel="stylesheet" href="css/changelog.css">
 </head>
 <body>
   <div class="cover-page">
@@ -22,12 +23,16 @@
         <h3 data-i18n="cover.modules">模块一览</h3>
         <ul class="cover-module-list">
           <li class="open">
-            <span class="module-tag live" data-i18n="cover.live">已开放</span>
-            <span data-i18n="cover.mod1">小作文 · 动态图（时间 + 数据变化）</span>
+            <a href="home.html" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:0.5rem;width:100%;">
+              <span class="module-tag live" data-i18n="cover.live">已开放</span>
+              <span data-i18n="cover.mod1">小作文 · 动态图（时间 + 数据变化）</span>
+            </a>
           </li>
-          <li class="soon">
-            <span class="module-tag pending" data-i18n="cover.pending">待更新</span>
-            <span data-i18n="cover.mod2">小作文 · 静态图</span>
+          <li class="open">
+            <a href="static/home.html" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:0.5rem;width:100%;">
+              <span class="module-tag live" data-i18n="cover.live">已开放</span>
+              <span data-i18n="cover.mod2">小作文 · 静态图（时间 + 数据不变）</span>
+            </a>
           </li>
           <li class="soon">
             <span class="module-tag pending" data-i18n="cover.pending">待更新</span>
@@ -41,10 +46,11 @@
       </div>
 
       <p class="cover-signature"><span data-i18n="cover.signature">Proudly presented by</span> <em>037、</em></p>
-      <p class="cover-notice" data-i18n="cover.notice">本网站及相关内容均为个人创作者原创，禁止转发。</p>
+      <p class="cover-notice" data-i18n="cover.notice">本网站及相关内容均为个人创作者原创，禁止随意转发。</p>
 
       <a class="cover-btn" href="home.html" id="cover-start" data-i18n="cover.start">开始学习</a>
     </div>
+    <button type="button" class="changelog-btn" id="changelog-btn" data-i18n="changelog.btn">更新日志</button>
   </div>
   <script src="js/s2t-map.js"></script>
   <script src="js/i18n.js"></script>
@@ -52,19 +58,41 @@
   <script src="js/user.js"></script>
   <script src="js/user-ui.js"></script>
   <script src="js/cover-quotes.js"></script>
+  <script src="js/changelog.js"></script>
+  <script src="js/changelog-ui.js"></script>
   <script src="js/page-transition.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const btn = document.getElementById("cover-start");
-      const goHome = () => PageTransition.go("home.html");
+      const lastModule = (() => {
+        try { return localStorage.getItem("ielts-last-module") || "home.html"; }
+        catch { return "home.html"; }
+      })();
+      btn.href = lastModule;
+
+      const goLast = () => PageTransition.go(lastModule);
 
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         if (!UserStore.current()) {
-          UserUI.showOnboarding(goHome);
+          UserUI.showOnboarding(goLast);
         } else {
-          goHome();
+          goLast();
         }
+      });
+
+      document.querySelectorAll(".cover-module-list a[href]").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const href = link.getAttribute("href");
+          try { localStorage.setItem("ielts-last-module", href); } catch { /* ignore */ }
+          const go = () => PageTransition.go(href);
+          if (!UserStore.current()) {
+            UserUI.showOnboarding(go);
+          } else {
+            go();
+          }
+        });
       });
 
       if (!UserStore.current()) UserUI.showOnboarding();

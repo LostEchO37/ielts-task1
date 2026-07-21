@@ -2,7 +2,10 @@
 
 const WB_MODULE_KEYS = {
   step1: "nav.step1", step2: "nav.step2", step3: "nav.step3",
-  language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas"
+  language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
+  static_step1: "static.nav.step1", static_step2: "static.nav.step2",
+  static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
+  static_formulas: "static.nav.formulas"
 };
 
 function stripHtml(html) {

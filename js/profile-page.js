@@ -2,8 +2,44 @@
 
 const QUIZ_MODULE_KEYS = {
   step1: "nav.step1", step2: "nav.step2", step3: "nav.step3",
-  language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas"
+  language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
+  static_step1: "static.nav.step1", static_step2: "static.nav.step2",
+  static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
+  static_formulas: "static.nav.formulas"
 };
+
+function renderCollection(u, colKey) {
+  const col = BADGE_COLLECTIONS[colKey];
+  const moduleCards = col.moduleIds.map((modId) => {
+    const fullId = moduleBadgeId(colKey, modId);
+    const earned = u.badges.includes(fullId);
+    const prog = UserStore.getModuleProgress(modId);
+    const progressHtml = earned
+      ? `<span class="badge-progress done">${t("badge.unlocked")}</span>`
+      : `<span class="badge-progress">${prog.done}/${prog.total} ${t("badge.questions")}</span>`;
+    return `<div class="badge-module-row">
+      ${UserUI.badgeCardHtml(fullId, earned, u.badgeWall.includes(fullId))}
+      ${progressHtml}
+    </div>`;
+  }).join("");
+
+  const masterId = badgeId(colKey, "all_modules");
+  const masterEarned = u.badges.includes(masterId);
+  const masterLabel = colKey === "task1_static"
+    ? t("badge.static_all_modules.masterLabel")
+    : t("badge.all_modules.masterLabel");
+
+  return `
+    <div class="card">
+      <h2>📁 <span data-i18n="collection.${colKey}">${t(col.titleKey)}</span></h2>
+      <p class="badge-collection-desc" data-i18n="collection.${colKey}.desc">${t(col.titleKey + ".desc")}</p>
+      <div class="badge-modules-list">${moduleCards}</div>
+      <div class="badge-collection-master">
+        <p class="badge-master-label">${masterLabel}</p>
+        ${UserUI.badgeCardHtml(masterId, masterEarned, u.badgeWall.includes(masterId))}
+      </div>
+    </div>`;
+}
 
 function renderProfile() {
   const el = document.getElementById("profile-content");
@@ -32,21 +68,7 @@ function renderProfile() {
     ? onWall.map((id) => UserUI.badgeCardHtml(id, true, true)).join("")
     : `<p class="wall-empty" data-i18n="profile.wallEmpty">还没有勋章上墙。在下方练完各知识点全部题目解锁后，点击勋章即可展示。</p>`;
 
-  const moduleCards = col.moduleIds.map((modId) => {
-    const fullId = moduleBadgeId(colKey, modId);
-    const earned = u.badges.includes(fullId);
-    const prog = UserStore.getModuleProgress(modId);
-    const progressHtml = earned
-      ? `<span class="badge-progress done">${t("badge.unlocked")}</span>`
-      : `<span class="badge-progress">${prog.done}/${prog.total} ${t("badge.questions")}</span>`;
-    return `<div class="badge-module-row">
-      ${UserUI.badgeCardHtml(fullId, earned, u.badgeWall.includes(fullId))}
-      ${progressHtml}
-    </div>`;
-  }).join("");
-
-  const masterId = badgeId(colKey, "all_modules");
-  const masterEarned = u.badges.includes(masterId);
+  const collectionsHtml = Object.keys(BADGE_COLLECTIONS).map((key) => renderCollection(u, key)).join("");
 
   const histHtml = (u.history || []).slice(0, 8).map((h) => {
     const modTitle = t(QUIZ_MODULE_KEYS[h.moduleId] || h.moduleId);
@@ -74,15 +96,7 @@ function renderProfile() {
       <div class="badge-grid badge-wall-grid" id="badge-wall-display">${wallHtml}</div>
     </div>
 
-    <div class="card">
-      <h2>📁 <span data-i18n="collection.task1_dynamic">小作文 · 动态图</span></h2>
-      <p class="badge-collection-desc" data-i18n="collection.task1_dynamic.desc">各知识点「我会了」全部题目答对后解锁对应勋章</p>
-      <div class="badge-modules-list">${moduleCards}</div>
-      <div class="badge-collection-master">
-        <p class="badge-master-label" data-i18n="badge.all_modules.masterLabel">动态图大师（六个知识点全部通关）</p>
-        ${UserUI.badgeCardHtml(masterId, masterEarned, u.badgeWall.includes(masterId))}
-      </div>
-    </div>
+    ${collectionsHtml}
 
     <div class="card">
       <h2 data-i18n="profile.history">最近练习</h2>

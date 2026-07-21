@@ -14,10 +14,29 @@ const BADGE_COLLECTIONS = {
       formulas: { icon: "🏆", color: "#6b4d9e" },
       all_modules: { icon: "👑", color: "#d4af37" }
     }
+  },
+  task1_static: {
+    key: "task1_static",
+    titleKey: "collection.task1_static",
+    moduleIds: ["static_step1", "static_step2", "static_step3", "static_bonus", "static_formulas"],
+    badges: {
+      static_step1: { icon: "🎯", color: "#1e4d6b" },
+      static_step2: { icon: "📊", color: "#2a6f8f" },
+      static_step3: { icon: "📈", color: "#c45c3e" },
+      static_bonus: { icon: "⭐", color: "#e8a838" },
+      static_formulas: { icon: "🏆", color: "#6b4d9e" },
+      all_modules: { icon: "👑", color: "#d4af37" }
+    }
   }
 };
 
 const MODULE_IDS = BADGE_COLLECTIONS.task1_dynamic.moduleIds;
+
+function collectionForModule(moduleId) {
+  if (!moduleId) return BADGE_COLLECTIONS.task1_dynamic;
+  if (moduleId.startsWith("static_")) return BADGE_COLLECTIONS.task1_static;
+  return BADGE_COLLECTIONS.task1_dynamic;
+}
 
 function moduleBadgeId(collectionKey, moduleId) {
   return `${collectionKey}.${moduleId}`;
@@ -60,29 +79,34 @@ const UserStore = {
     if (!u.mastered) u.mastered = {};
     if (!u.masteredModules) u.masteredModules = {};
 
-    const col = BADGE_COLLECTIONS.task1_dynamic.key;
+    const validIds = new Set();
+    Object.values(BADGE_COLLECTIONS).forEach((col) => {
+      col.moduleIds.forEach((m) => validIds.add(moduleBadgeId(col.key, m)));
+      validIds.add(badgeId(col.key, "all_modules"));
+    });
 
     u.badges = u.badges.filter((b) => {
       const p = parseBadgeId(b);
       if (p.legacyTier) return false;
-      if (p.isMaster) return b === badgeId(col, "all_modules");
-      return p.moduleId && MODULE_IDS.includes(p.moduleId);
+      return validIds.has(b);
     });
     u.badgeWall = u.badgeWall.filter((id) => u.badges.includes(id));
 
     if (typeof QUIZ_BANK !== "undefined") {
-      MODULE_IDS.forEach((m) => {
-        const id = moduleBadgeId(col, m);
-        if (this.isModuleFullyMasteredFromData(u, m)) {
-          u.masteredModules[m] = true;
-          if (!u.badges.includes(id)) u.badges.push(id);
+      Object.values(BADGE_COLLECTIONS).forEach((col) => {
+        col.moduleIds.forEach((m) => {
+          const id = moduleBadgeId(col.key, m);
+          if (this.isModuleFullyMasteredFromData(u, m)) {
+            u.masteredModules[m] = true;
+            if (!u.badges.includes(id)) u.badges.push(id);
+          }
+        });
+
+        if (col.moduleIds.every((m) => u.badges.includes(moduleBadgeId(col.key, m)))) {
+          const master = badgeId(col.key, "all_modules");
+          if (!u.badges.includes(master)) u.badges.push(master);
         }
       });
-
-      if (MODULE_IDS.every((m) => u.badges.includes(moduleBadgeId(col, m)))) {
-        const master = badgeId(col, "all_modules");
-        if (!u.badges.includes(master)) u.badges.push(master);
-      }
     }
 
     if (u.badges.length && !u.badgeWall.length) u.badgeWall = [...u.badges];
@@ -181,12 +205,13 @@ const UserStore = {
   hasBadge(moduleId) {
     const u = this.current();
     if (!u) return false;
-    if (moduleId === "all_modules") return u.badges.includes(badgeId(BADGE_COLLECTIONS.task1_dynamic.key, "all_modules"));
-    return u.badges.includes(moduleBadgeId(BADGE_COLLECTIONS.task1_dynamic.key, moduleId));
+    const col = collectionForModule(moduleId);
+    if (moduleId === "all_modules") return u.badges.includes(badgeId(col.key, "all_modules"));
+    return u.badges.includes(moduleBadgeId(col.key, moduleId));
   },
 
   awardModuleBadge(moduleId) {
-    const col = BADGE_COLLECTIONS.task1_dynamic;
+    const col = collectionForModule(moduleId);
     const fullId = moduleBadgeId(col.key, moduleId);
     let newly = false;
     this.update((u) => {
@@ -199,12 +224,12 @@ const UserStore = {
         newly = true;
       }
     });
-    if (newly) this.tryAwardMaster();
+    if (newly) this.tryAwardMaster(moduleId);
     return newly ? fullId : null;
   },
 
-  tryAwardMaster() {
-    const col = BADGE_COLLECTIONS.task1_dynamic;
+  tryAwardMaster(moduleId) {
+    const col = collectionForModule(moduleId);
     const u = this.current();
     if (!u) return null;
     if (!col.moduleIds.every((m) => u.badges.includes(moduleBadgeId(col.key, m)))) return null;
@@ -224,7 +249,7 @@ const UserStore = {
     const earned = [];
     const id = this.awardModuleBadge(moduleId);
     if (id) earned.push(id);
-    const master = this.tryAwardMaster();
+    const master = this.tryAwardMaster(moduleId);
     if (master && !earned.includes(master)) earned.push(master);
     return earned;
   },
@@ -290,14 +315,28 @@ const UserStore = {
 
   getBadgeTitle(fullId) {
     const p = parseBadgeId(fullId);
-    if (p.isMaster) return t("badge.all_modules.title");
-    const keys = { step1: "nav.step1", step2: "nav.step2", step3: "nav.step3", language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas" };
+    if (p.isMaster) {
+      return p.collection === "task1_static"
+        ? t("badge.static_all_modules.title")
+        : t("badge.all_modules.title");
+    }
+    const keys = {
+      step1: "nav.step1", step2: "nav.step2", step3: "nav.step3",
+      language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
+      static_step1: "static.nav.step1", static_step2: "static.nav.step2",
+      static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
+      static_formulas: "static.nav.formulas"
+    };
     return t(`badge.${p.moduleId}.title`) || t(keys[p.moduleId] || p.moduleId);
   },
 
   getBadgeDesc(fullId) {
     const p = parseBadgeId(fullId);
-    if (p.isMaster) return t("badge.all_modules.desc");
+    if (p.isMaster) {
+      return p.collection === "task1_static"
+        ? t("badge.static_all_modules.desc")
+        : t("badge.all_modules.desc");
+    }
     return t(`badge.${p.moduleId}.desc`) || t("badge.module.desc");
   },
 

@@ -11,6 +11,10 @@
 const Settings = {
   defaults: { lang: "zh-CN", theme: "light", meme: true },
 
+  rootPrefix() {
+    return location.pathname.includes("/static/") ? "../" : "";
+  },
+
   get(key) {
     try {
       const s = JSON.parse(localStorage.getItem("ielts-settings") || "{}");
@@ -131,7 +135,7 @@ const Settings = {
     }
     if (!document.querySelector("script[data-analytics]")) {
       const s = document.createElement("script");
-      s.src = "js/analytics.js";
+      s.src = `${this.rootPrefix()}js/analytics.js`;
       s.dataset.analytics = "1";
       s.defer = true;
       document.body.appendChild(s);
@@ -150,7 +154,7 @@ const Settings = {
       <div class="reward-sheet">
         <button type="button" class="reward-close" aria-label="close">&times;</button>
         <h3 data-i18n="reward.title">${t("reward.title")}</h3>
-        <img class="reward-qr" src="assets/wechat-reward.jpg" alt="微信收款码">
+        <img class="reward-qr" src="${this.rootPrefix()}assets/wechat-reward.jpg" alt="微信收款码">
         <p class="reward-caption" data-i18n="reward.caption">${t("reward.caption")}</p>
       </div>`;
     panel.classList.add("open");
@@ -223,10 +227,12 @@ const Settings = {
   },
 
   injectPageTransition() {
-    if (!document.querySelector("link[data-page-transition]")) {
+    const root = this.rootPrefix();
+
+    if (!document.querySelector('link[href*="page-transition.css"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "css/page-transition.css";
+      link.href = `${root}css/page-transition.css`;
       link.dataset.pageTransition = "1";
       document.head.appendChild(link);
     }
@@ -239,9 +245,14 @@ const Settings = {
     if (document.querySelector("script[data-page-transition]")) return;
 
     const script = document.createElement("script");
-    script.src = "js/page-transition.js";
+    script.src = `${root}js/page-transition.js`;
     script.dataset.pageTransition = "1";
     script.onload = () => PageTransition.initEnter();
+    script.onerror = () => {
+      document.documentElement.classList.remove("ielts-enter-boot");
+      document.body.classList.remove("page-entering", "page-enter-active");
+      document.querySelector(".page-enter-veil")?.remove();
+    };
     document.body.appendChild(script);
   }
 };
