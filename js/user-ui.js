@@ -71,6 +71,7 @@ const UserUI = {
       }
       modal.classList.remove("open");
       this.refreshSidebar();
+      if (typeof SiteAnalytics !== "undefined") SiteAnalytics.track();
       if (onDone) onDone(res.user);
     };
 

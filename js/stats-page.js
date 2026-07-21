@@ -15,6 +15,13 @@
     bodyEl.classList.add("hidden");
   }
 
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function uaShort(ua) {
     if (!ua) return "—";
     if (/iPhone|iPad/i.test(ua)) return "iOS";
@@ -55,8 +62,9 @@
       logTb.innerHTML = data.visits.map((v) => {
         const t = v.ts ? v.ts.replace("T", " ").slice(0, 19) : "—";
         const ref = v.referrer ? v.referrer.replace(/^https?:\/\//, "").slice(0, 48) : "直接访问";
-        return `<tr><td>${t}</td><td>${v.page}</td><td>${ref}</td><td>${uaShort(v.ua)}</td></tr>`;
-      }).join("") || `<tr><td colspan="4">暂无记录</td></tr>`;
+        const user = v.user ? esc(v.user) : "未登录";
+        return `<tr><td>${t}</td><td>${esc(v.page)}</td><td>${esc(ref)}</td><td>${uaShort(v.ua)}</td><td>${user}</td></tr>`;
+      }).join("") || `<tr><td colspan="5">暂无记录</td></tr>`;
     } catch {
       showErr("存储未就绪 (storage_unavailable)。请在 Netlify 开启 Blobs 并配置 NETLIFY_BLOB_READ_WRITE_TOKEN，然后重新部署。");
     }

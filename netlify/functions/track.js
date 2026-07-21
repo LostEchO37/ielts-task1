@@ -33,6 +33,7 @@ exports.handler = async (event) => {
     referrer: String(body.referrer || "").slice(0, 300),
     ua: (event.headers["user-agent"] || event.headers["User-Agent"] || "").slice(0, 160),
     lang: String(body.lang || "").slice(0, 32),
+    user: String(body.user || "").slice(0, 16),
     vw: Number(body.vw) || 0,
     vh: Number(body.vh) || 0
   };

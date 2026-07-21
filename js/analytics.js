@@ -12,14 +12,28 @@ const SiteAnalytics = {
     return id;
   },
 
+  currentUserName() {
+    try {
+      if (typeof UserStore !== "undefined" && UserStore.current()) {
+        return UserStore.current().name || "";
+      }
+      const data = JSON.parse(localStorage.getItem("ielts-users-v1") || "{}");
+      const id = data.currentUserId;
+      if (id && data.users && data.users[id]) return data.users[id].name || "";
+    } catch { /* ignore */ }
+    return "";
+  },
+
   track() {
+    const userName = this.currentUserName();
     const payload = {
       page: location.pathname + location.search,
       referrer: document.referrer || "",
       lang: navigator.language || "",
       vw: window.innerWidth,
       vh: window.innerHeight,
-      session: this.sessionId()
+      session: this.sessionId(),
+      user: userName
     };
     const url = "/api/track";
     const body = JSON.stringify(payload);
