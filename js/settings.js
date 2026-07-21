@@ -99,6 +99,12 @@ const Settings = {
     if (setBtn) setBtn.textContent = t("settings.btn");
     if (setBtn) setBtn.title = t("settings.title");
 
+    const rewardBtn = document.querySelector(".reward-btn");
+    if (rewardBtn) {
+      rewardBtn.textContent = t("reward.btn");
+      rewardBtn.title = t("reward.title");
+    }
+
     const disc = document.querySelector(".page-disclaimer");
     if (disc) disc.textContent = t("disclaimer");
 
@@ -106,12 +112,15 @@ const Settings = {
   },
 
   injectChrome() {
-    if (!document.querySelector(".settings-btn")) {
-      const btn = document.createElement("button");
-      btn.className = "settings-btn";
-      btn.type = "button";
-      btn.onclick = () => this.openPanel();
-      document.body.appendChild(btn);
+    if (!document.querySelector(".page-chrome")) {
+      const wrap = document.createElement("div");
+      wrap.className = "page-chrome";
+      wrap.innerHTML = `
+        <button type="button" class="settings-btn" title="">⚙</button>
+        <button type="button" class="reward-btn" title="">赏</button>`;
+      wrap.querySelector(".settings-btn").onclick = () => this.openPanel();
+      wrap.querySelector(".reward-btn").onclick = () => this.openReward();
+      document.body.appendChild(wrap);
     }
     if (!document.querySelector(".page-disclaimer")) {
       const d = document.createElement("div");
@@ -120,6 +129,38 @@ const Settings = {
       d.textContent = t("disclaimer");
       document.body.appendChild(d);
     }
+    if (!document.querySelector("script[data-analytics]")) {
+      const s = document.createElement("script");
+      s.src = "js/analytics.js";
+      s.dataset.analytics = "1";
+      s.defer = true;
+      document.body.appendChild(s);
+    }
+  },
+
+  openReward() {
+    let panel = document.getElementById("reward-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "reward-panel";
+      document.body.appendChild(panel);
+    }
+    panel.innerHTML = `
+      <div class="reward-backdrop"></div>
+      <div class="reward-sheet">
+        <button type="button" class="reward-close" aria-label="close">&times;</button>
+        <h3 data-i18n="reward.title">${t("reward.title")}</h3>
+        <img class="reward-qr" src="assets/wechat-reward.png" alt="WeChat Pay QR">
+        <p class="reward-caption" data-i18n="reward.caption">${t("reward.caption")}</p>
+      </div>`;
+    panel.classList.add("open");
+    panel.querySelector(".reward-backdrop").onclick = () => this.closeReward();
+    panel.querySelector(".reward-close").onclick = () => this.closeReward();
+  },
+
+  closeReward() {
+    const panel = document.getElementById("reward-panel");
+    if (panel) panel.classList.remove("open");
   },
 
   openPanel() {
