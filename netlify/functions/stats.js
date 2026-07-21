@@ -1,6 +1,8 @@
 const { getStore, connectLambda } = require("@netlify/blobs");
 
-exports.handler = connectLambda(async (event) => {
+exports.handler = async (event) => {
+  connectLambda(event);
+
   const token = process.env.ADMIN_STATS_TOKEN;
   if (!token) {
     return {
@@ -62,10 +64,7 @@ exports.handler = connectLambda(async (event) => {
     return {
       statusCode: 503,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        error: "storage_unavailable",
-        hint: "Redeploy the site after functions update. Blobs store appears here after first visit is recorded."
-      })
+      body: JSON.stringify({ error: "storage_unavailable" })
     };
   }
-});
+};

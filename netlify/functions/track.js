@@ -8,7 +8,9 @@ const CORS = {
 
 const MAX_VISITS = 5000;
 
-exports.handler = connectLambda(async (event) => {
+exports.handler = async (event) => {
+  connectLambda(event);
+
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: CORS, body: "" };
   }
@@ -55,4 +57,4 @@ exports.handler = connectLambda(async (event) => {
     headers: { ...CORS, "Content-Type": "application/json" },
     body: JSON.stringify({ ok: true })
   };
-});
+};
