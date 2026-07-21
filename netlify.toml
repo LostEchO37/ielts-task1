@@ -1,6 +1,17 @@
-# Netlify static site — no build step needed
+# Netlify static site + serverless analytics
 [build]
   publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/track"
+  to = "/.netlify/functions/track"
+  status = 200
+
+[[redirects]]
+  from = "/api/stats"
+  to = "/.netlify/functions/stats"
+  status = 200
 
 [[headers]]
   for = "/*"
