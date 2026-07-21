@@ -16,7 +16,6 @@ const UserUI = {
       block.innerHTML = `
         <div class="nav-section" data-i18n="nav.my">我的</div>
         <a class="nav-link" href="profile.html" data-i18n="nav.profile">勋章墙</a>
-        <a class="nav-link" href="simulation.html" data-i18n="nav.simulation">综合模拟</a>
         <a class="nav-link" href="wrongbook.html" data-i18n="nav.wrongbook">错题本 <span class="nav-badge wrong-count hidden" id="nav-wrong-count">0</span></a>`;
       nav.appendChild(block);
     }

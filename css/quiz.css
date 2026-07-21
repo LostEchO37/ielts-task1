@@ -279,10 +279,11 @@
   right: auto;
 }
 
-/* 页面角落免责声明 — 左下角，不挡设置 */
+/* 页面角落免责声明 — 右下角，避开左栏 037、水印 */
 .page-disclaimer {
   position: fixed;
-  left: 1rem;
+  left: auto;
+  right: 1rem;
   bottom: 1rem;
   z-index: 40;
   max-width: 220px;
@@ -291,6 +292,7 @@
   color: var(--muted);
   opacity: 0.72;
   pointer-events: none;
+  text-align: right;
 }
 
 @media (max-width: 860px) {
@@ -299,7 +301,7 @@
   .page-chrome { top: 0.75rem; right: 0.75rem; }
   .settings-btn { top: 0.75rem; right: 0.75rem; }
   .mobile-toggle { right: 4rem; }
-  .page-disclaimer { left: 0.75rem; bottom: 0.75rem; max-width: 160px; font-size: 0.62rem; }
+  .page-disclaimer { right: 0.75rem; bottom: 0.75rem; left: auto; max-width: 160px; font-size: 0.62rem; }
 }
 
 /* 设置面板 */

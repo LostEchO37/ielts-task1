@@ -1,0 +1,177 @@
+/* 封面页 — 手写励志引言 · 背景打字带 */
+
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Serif+SC:wght@300;400;600&display=swap");
+
+.cover-page {
+  font-family: "Noto Serif SC", "PingFang SC", "Noto Sans SC", serif;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 90%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+    linear-gradient(155deg, #1a4560 0%, #2d7a9a 38%, #1e3d56 72%, #142a3d 100%);
+}
+
+.cover-bg-quotes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.cover-bg-typewriter {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 9%;
+  display: block;
+}
+
+.cover-bg-typewriter-track {
+  display: block;
+  max-width: 100%;
+  text-align: left;
+}
+
+.cover-bg-typewriter-text {
+  display: inline;
+  font-family: "Caveat", "Cormorant Garamond", cursive;
+  font-size: clamp(3rem, 9.5vw, 7.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.38);
+  user-select: none;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.12),
+    0 0 40px rgba(255, 255, 255, 0.08);
+}
+
+.cover-bg-word {
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 0.34em;
+  vertical-align: baseline;
+}
+
+.cover-bg-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(10px) rotate(var(--rot, 0deg));
+  animation: cover-letter-in 0.28s ease forwards;
+}
+
+@keyframes cover-letter-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--rot, 0deg));
+  }
+}
+
+.cover-bg-cursor {
+  display: inline-block;
+  vertical-align: baseline;
+  font-family: "Caveat", cursive;
+  font-size: 0.88em;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  margin-left: 0.02em;
+  animation: cover-cursor-blink 0.75s step-end infinite;
+}
+
+@keyframes cover-cursor-blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.cover-page::before {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.05);
+}
+
+.cover-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.cover-badge {
+  font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  backdrop-filter: blur(6px);
+}
+
+.cover-title {
+  font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.15);
+}
+
+.cover-subtitle {
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.cover-modules {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.cover-signature,
+.cover-notice {
+  font-weight: 300;
+  letter-spacing: 0.04em;
+}
+
+.cover-signature em {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.cover-btn {
+  font-family: "Noto Serif SC", "Cormorant Garamond", serif;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+}
+
+[data-theme="dark"] .cover-page {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255, 255, 255, 0.04) 0%, transparent 55%),
+    linear-gradient(155deg, #0a1018 0%, #152535 45%, #0d1520 100%);
+}
+
+[data-theme="dark"] .cover-bg-typewriter-text {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+@media (max-width: 720px) {
+  .cover-bg-typewriter {
+    top: 7%;
+    left: 3%;
+    right: 3%;
+  }
+
+  .cover-bg-typewriter-text {
+    font-size: clamp(2.35rem, 10vw, 3.6rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-bg-letter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .cover-bg-cursor {
+    animation: none;
+  }
+}

@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>雅思作文教程（简化版）</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/cover.css">
   <link rel="stylesheet" href="css/quiz.css">
   <link rel="stylesheet" href="css/user.css">
 </head>
 <body>
   <div class="cover-page">
+    <div class="cover-bg-quotes" id="cover-bg-quotes" aria-hidden="true"></div>
     <div class="cover-inner" data-s2t-scope>
       <div class="cover-badge" data-i18n="cover.badge">IELTS WRITING · 简化版教程</div>
       <h1 class="cover-title" data-i18n="cover.title">雅思作文教程</h1>
@@ -48,6 +50,7 @@
   <script src="js/settings.js"></script>
   <script src="js/user.js"></script>
   <script src="js/user-ui.js"></script>
+  <script src="js/cover-quotes.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const btn = document.getElementById("cover-start");
