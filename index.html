@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/cover.css">
   <link rel="stylesheet" href="css/quiz.css">
+  <link rel="stylesheet" href="css/page-transition.css">
   <link rel="stylesheet" href="css/user.css">
 </head>
 <body>
@@ -51,15 +52,21 @@
   <script src="js/user.js"></script>
   <script src="js/user-ui.js"></script>
   <script src="js/cover-quotes.js"></script>
+  <script src="js/page-transition.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const btn = document.getElementById("cover-start");
+      const goHome = () => PageTransition.go("home.html");
+
       btn.addEventListener("click", (e) => {
+        e.preventDefault();
         if (!UserStore.current()) {
-          e.preventDefault();
-          UserUI.showOnboarding(() => { location.href = "home.html"; });
+          UserUI.showOnboarding(goHome);
+        } else {
+          goHome();
         }
       });
+
       if (!UserStore.current()) UserUI.showOnboarding();
     });
   </script>

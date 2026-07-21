@@ -1,0 +1,140 @@
+/* 封面 → 学习页 丝滑过渡 */
+
+body.page-exiting {
+  background: linear-gradient(155deg, #1a4560 0%, #2d7a9a 38%, #1e3d56 72%, #142a3d 100%);
+}
+
+body.page-exiting .cover-page {
+  opacity: 0;
+  transform: scale(0.988) translateY(-12px);
+  transition: opacity 0.52s ease, transform 0.52s ease;
+}
+
+body.page-exiting .page-chrome,
+body.page-exiting .page-disclaimer {
+  opacity: 0;
+  transition: opacity 0.38s ease;
+}
+
+/* 封面退出末段：渐变遮罩淡入，避免切页闪白 */
+body.page-exiting::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  background: linear-gradient(155deg, #1a4560 0%, #2d7a9a 38%, #1e3d56 72%, #142a3d 100%);
+  opacity: 0;
+  animation: page-exit-veil 0.42s ease forwards 0.28s;
+}
+
+@keyframes page-exit-veil {
+  to {
+    opacity: 1;
+  }
+}
+
+/* 学习页首帧：与封面同色衔接（由 boot 脚本触发） */
+html.ielts-enter-boot::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+  background: linear-gradient(155deg, #1a4560 0%, #2d7a9a 38%, #1e3d56 72%, #142a3d 100%);
+}
+
+html.ielts-enter-boot .layout {
+  opacity: 0;
+  transform: translateY(22px) scale(0.988);
+  filter: blur(5px);
+}
+
+body.page-entering .layout {
+  opacity: 0;
+  transform: translateY(22px) scale(0.988);
+  filter: blur(5px);
+}
+
+body.page-enter-active .layout {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity 0.92s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+    transform 0.92s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+    filter 0.78s ease 0.14s;
+}
+
+/* 半透明磨砂层 — 向上滑移揭示内容 */
+.page-enter-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  background: linear-gradient(
+    168deg,
+    rgba(20, 42, 61, 0.78) 0%,
+    rgba(45, 122, 154, 0.48) 38%,
+    rgba(230, 238, 245, 0.42) 100%
+  );
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    transform 0.96s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.96s cubic-bezier(0.22, 1, 0.36, 1),
+    backdrop-filter 0.82s ease,
+    background 0.96s ease;
+}
+
+.page-enter-veil.reveal {
+  opacity: 0;
+  transform: translateY(-24%);
+  backdrop-filter: blur(0);
+  background: linear-gradient(
+    168deg,
+    rgba(20, 42, 61, 0) 0%,
+    rgba(45, 122, 154, 0) 38%,
+    rgba(230, 238, 245, 0) 100%
+  );
+}
+
+[data-theme="dark"] .page-enter-veil {
+  background: linear-gradient(
+    168deg,
+    rgba(10, 16, 24, 0.85) 0%,
+    rgba(21, 37, 53, 0.55) 40%,
+    rgba(15, 20, 25, 0.45) 100%
+  );
+}
+
+[data-theme="dark"] .page-enter-veil.reveal {
+  background: linear-gradient(
+    168deg,
+    rgba(10, 16, 24, 0) 0%,
+    rgba(21, 37, 53, 0) 40%,
+    rgba(15, 20, 25, 0) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.page-exiting::after {
+    animation: none;
+    opacity: 1;
+  }
+
+  body.page-exiting .cover-page,
+  body.page-exiting .page-chrome,
+  body.page-exiting .page-disclaimer,
+  .page-enter-veil,
+  body.page-enter-active .layout,
+  body.page-entering .layout,
+  html.ielts-enter-boot .layout {
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+  }
+}

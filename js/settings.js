@@ -217,8 +217,32 @@ const Settings = {
   },
 
   init() {
+    this.injectPageTransition();
     this.injectChrome();
     this.apply();
+  },
+
+  injectPageTransition() {
+    if (!document.querySelector("link[data-page-transition]")) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "css/page-transition.css";
+      link.dataset.pageTransition = "1";
+      document.head.appendChild(link);
+    }
+
+    if (typeof PageTransition !== "undefined") {
+      PageTransition.initEnter();
+      return;
+    }
+
+    if (document.querySelector("script[data-page-transition]")) return;
+
+    const script = document.createElement("script");
+    script.src = "js/page-transition.js";
+    script.dataset.pageTransition = "1";
+    script.onload = () => PageTransition.initEnter();
+    document.body.appendChild(script);
   }
 };
 
