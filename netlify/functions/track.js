@@ -1,4 +1,4 @@
-const { getVisitStore } = require("./_store");
+const { getStore, connectLambda } = require("@netlify/blobs");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +8,7 @@ const CORS = {
 
 const MAX_VISITS = 5000;
 
-exports.handler = async (event) => {
+exports.handler = connectLambda(async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: CORS, body: "" };
   }
@@ -36,13 +36,13 @@ exports.handler = async (event) => {
   };
 
   try {
-    const store = getVisitStore();
+    const store = getStore("site-visits");
     await store.setJSON(id, record);
     const index = (await store.get("visit-index", { type: "json" })) || [];
     index.unshift(id);
     if (index.length > MAX_VISITS) index.length = MAX_VISITS;
     await store.setJSON("visit-index", index);
-  } catch (err) {
+  } catch {
     return {
       statusCode: 503,
       headers: { ...CORS, "Content-Type": "application/json" },
@@ -55,4 +55,4 @@ exports.handler = async (event) => {
     headers: { ...CORS, "Content-Type": "application/json" },
     body: JSON.stringify({ ok: true })
   };
-};
+});

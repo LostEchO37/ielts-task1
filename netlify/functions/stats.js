@@ -1,6 +1,6 @@
-const { getVisitStore } = require("./_store");
+const { getStore, connectLambda } = require("@netlify/blobs");
 
-exports.handler = async (event) => {
+exports.handler = connectLambda(async (event) => {
   const token = process.env.ADMIN_STATS_TOKEN;
   if (!token) {
     return {
@@ -25,7 +25,7 @@ exports.handler = async (event) => {
   const limit = Math.min(parseInt(event.queryStringParameters?.limit || "200", 10), 500);
 
   try {
-    const store = getVisitStore();
+    const store = getStore("site-visits");
     const index = (await store.get("visit-index", { type: "json" })) || [];
     const ids = index.slice(0, limit);
     const visits = [];
@@ -58,14 +58,14 @@ exports.handler = async (event) => {
         visits
       })
     };
-  } catch (err) {
+  } catch {
     return {
       statusCode: 503,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         error: "storage_unavailable",
-        hint: "Enable Netlify Blobs and add NETLIFY_BLOB_READ_WRITE_TOKEN in environment variables, then redeploy."
+        hint: "Redeploy the site after functions update. Blobs store appears here after first visit is recorded."
       })
     };
   }
-};
+});
