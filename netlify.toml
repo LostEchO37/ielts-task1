@@ -1,8 +1,13 @@
 # Netlify static site + serverless analytics
+#
+# Deploy credits: 每次 production deploy ≈ 15 credits（免费额度约 20 次/月）
+# 仅当 commit message 含 [release] 或 [deploy] 时才构建 — 见 scripts/netlify-should-build.sh
+# 发布请用 ./deploy.sh，不要每次改完就 push 指望自动上线
 [build]
   command = "npm install && npm install --prefix netlify/functions"
   publish = "."
   functions = "netlify/functions"
+  ignore = "bash scripts/netlify-should-build.sh"
 
 [functions]
   node_bundler = "esbuild"
