@@ -150,7 +150,7 @@ const Settings = {
       <div class="reward-sheet">
         <button type="button" class="reward-close" aria-label="close">&times;</button>
         <h3 data-i18n="reward.title">${t("reward.title")}</h3>
-        <img class="reward-qr" src="assets/wechat-reward.png" alt="WeChat Pay QR">
+        <img class="reward-qr" src="assets/wechat-reward.jpg" alt="WeChat Pay QR">
         <p class="reward-caption" data-i18n="reward.caption">${t("reward.caption")}</p>
       </div>`;
     panel.classList.add("open");
