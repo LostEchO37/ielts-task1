@@ -3,6 +3,13 @@
 
 const CHANGELOG = [
   {
+    version: '3.1.4',
+    date: '2026-08-10',
+    items: [
+      '修复展示墙勋章点击下架后立刻又被加回的问题',
+    ],
+  },
+  {
     version: '3.1.3',
     date: '2026-08-10',
     items: [

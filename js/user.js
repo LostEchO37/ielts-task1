@@ -366,9 +366,7 @@ const UserStore = {
 
   syncBadgeWall(u) {
     if (!u.badgeWall) u.badgeWall = [];
-    u.badges.forEach((b) => {
-      if (!u.badgeWall.includes(b)) u.badgeWall.push(b);
-    });
+    // 只移除已失效的 id；不自动把全部勋章加回墙（用户可手动下架）
     u.badgeWall = u.badgeWall.filter((id) => u.badges.includes(id));
   },
 
