@@ -111,6 +111,12 @@ const Settings = {
       rewardBtn.title = t("reward.title");
     }
 
+    const feedbackBtn = document.querySelector(".feedback-btn");
+    if (feedbackBtn) {
+      feedbackBtn.textContent = t("feedback.btn");
+      feedbackBtn.title = t("feedback.title");
+    }
+
     const disc = document.querySelector(".page-disclaimer");
     if (disc) disc.textContent = t("disclaimer");
 
@@ -123,9 +129,13 @@ const Settings = {
       wrap.className = "page-chrome";
       wrap.innerHTML = `
         <button type="button" class="settings-btn" title="">⚙</button>
-        <button type="button" class="reward-btn" title="">赏</button>`;
+        <button type="button" class="reward-btn" title="">赏</button>
+        <button type="button" class="feedback-btn" title="">馈</button>`;
       wrap.querySelector(".settings-btn").onclick = () => this.openPanel();
       wrap.querySelector(".reward-btn").onclick = () => this.openReward();
+      wrap.querySelector(".feedback-btn").onclick = () => {
+        if (typeof Feedback !== "undefined") Feedback.open();
+      };
       document.body.appendChild(wrap);
     }
     if (!document.querySelector(".page-disclaimer")) {
@@ -147,6 +157,18 @@ const Settings = {
       s.dataset.analytics = "1";
       s.defer = true;
       document.body.appendChild(s);
+    }
+    if (!document.querySelector("script[data-feedback]")) {
+      const fb = document.createElement("script");
+      fb.src = `${this.rootPrefix()}js/feedback.js`;
+      fb.dataset.feedback = "1";
+      document.body.appendChild(fb);
+    }
+    if (!document.querySelector('link[href*="feedback.css"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `${this.rootPrefix()}css/feedback.css`;
+      document.head.appendChild(link);
     }
   },
 

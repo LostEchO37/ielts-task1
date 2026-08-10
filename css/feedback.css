@@ -1,0 +1,214 @@
+/* 评价反馈弹窗 */
+
+#feedback-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+#feedback-panel.open {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.feedback-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.feedback-sheet {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  padding: 1.25rem 1.35rem 1.5rem;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-cn);
+}
+
+.feedback-sheet h3 {
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin: 0 0 1rem;
+  padding-right: 2rem;
+}
+
+.feedback-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.feedback-section {
+  margin-bottom: 1.25rem;
+}
+
+.feedback-section h4 {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+  font-weight: 600;
+}
+
+.feedback-wall {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.feedback-card {
+  background: var(--accent-light);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+}
+
+.feedback-stars {
+  color: #e6a817;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.feedback-stars-input {
+  display: flex;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.feedback-star-btn {
+  border: none;
+  background: none;
+  font-size: 1.35rem;
+  color: #ddd;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.feedback-star-btn.active {
+  color: #e6a817;
+}
+
+.feedback-card-text {
+  font-size: 0.88rem;
+  margin: 0.35rem 0 0.25rem;
+  line-height: 1.55;
+}
+
+.feedback-card-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.feedback-wall-empty,
+.feedback-offline {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.feedback-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.feedback-form textarea,
+.feedback-form input[type="text"] {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-cn);
+  font-size: 0.9rem;
+  margin-bottom: 0.65rem;
+  resize: vertical;
+}
+
+.feedback-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.65rem;
+  cursor: pointer;
+}
+
+.feedback-check input {
+  margin-top: 0.15rem;
+}
+
+.feedback-name-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.65rem;
+}
+
+.feedback-submit {
+  width: 100%;
+  padding: 0.65rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: var(--font-cn);
+  cursor: pointer;
+}
+
+.feedback-msg {
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.feedback-msg-ok { color: var(--accent); }
+.feedback-msg-err { color: var(--accent-2); }
+
+.page-chrome .feedback-btn {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.feedback-btn:hover {
+  background: var(--accent-light);
+}
+
+body:has(.cover-page) .feedback-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+body:has(.cover-page) .feedback-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@media (min-width: 640px) {
+  #feedback-panel {
+    align-items: center;
+  }
+
+  .feedback-sheet {
+    border-radius: 16px;
+    margin-bottom: 0;
+  }
+}

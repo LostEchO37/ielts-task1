@@ -3,6 +3,14 @@
 
 const CHANGELOG = [
   {
+    version: '3.2.0',
+    date: '2026-08-10',
+    items: [
+      '新增「馈」评价反馈：展示墙 + 用户提交',
+      '管理页 feedback-admin.html：审核优质评价上墙',
+    ],
+  },
+  {
     version: '3.1.4',
     date: '2026-08-10',
     items: [

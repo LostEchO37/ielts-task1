@@ -238,6 +238,7 @@ body:has(.page-disclaimer) .quiz-fab {
 
 .page-chrome .settings-btn,
 .page-chrome .reward-btn,
+.page-chrome .feedback-btn,
 .settings-btn {
   position: relative;
   top: auto;

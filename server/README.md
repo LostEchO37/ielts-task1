@@ -19,6 +19,10 @@ GitHub Pages 只能托管静态前端；本目录提供 **Node.js + MySQL** 后�
 | `POST /api/auth/login` | 登录，返回 JWT token |
 | `GET /api/auth/data` | 拉取用户学习记录（需 Bearer token） |
 | `PUT /api/auth/data` | 保存学习记录（勋章、错题本、练习历史等） |
+| `POST /api/feedback` | 用户提交评价 |
+| `GET /api/feedback/wall` | 公开精选评价墙 |
+| `GET /api/feedback/admin` | 管理：查看待审/已上墙（需 Token） |
+| `PATCH /api/feedback/:id` | 管理：上墙 / 下架 / 隐藏 |
 
 前端在 `js/site-config.js` 填写 `apiBase` 后，会自动启用云端账号；未配置时退化为本地昵称模式。
 
@@ -63,6 +67,11 @@ apiBase: "https://ielts-analytics-api.onrender.com"
 
 打开：`https://lostecho37.github.io/ielts-task1/stats.html`  
 输入 `ADMIN_STATS_TOKEN` 口令 → 加载数据。
+
+## 5. 评价反馈上墙
+
+打开：`https://lostecho37.github.io/ielts-task1/feedback-admin.html`  
+同一口令 → 待审核 → 点上墙。详见 **`SETUP-反馈模块.md`**。
 
 ## 采集的事件
 

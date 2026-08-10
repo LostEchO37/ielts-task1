@@ -7,6 +7,7 @@ const { migrate } = require("./migrate");
 const trackRouter = require("./routes/track");
 const statsRouter = require("./routes/stats");
 const authRouter = require("./routes/auth");
+const feedbackRouter = require("./routes/feedback");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,7 +26,7 @@ app.use(
       }
       cb(null, false);
     },
-    methods: ["GET", "POST", "PUT", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
@@ -44,6 +45,7 @@ app.get("/health", async (_req, res) => {
 app.use("/api/track", trackRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/feedback", feedbackRouter);
 
 async function start() {
   try {

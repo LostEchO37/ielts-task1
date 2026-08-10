@@ -35,3 +35,18 @@ CREATE TABLE IF NOT EXISTS visits (
   INDEX idx_user (user_name),
   INDEX idx_module (module)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS feedback (
+  id VARCHAR(64) PRIMARY KEY,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  user_name VARCHAR(32) DEFAULT '',
+  display_name VARCHAR(32) DEFAULT '',
+  rating TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  content VARCHAR(600) NOT NULL,
+  status ENUM('pending', 'featured', 'hidden') NOT NULL DEFAULT 'pending',
+  featured_at DATETIME NULL,
+  session_id VARCHAR(64) DEFAULT '',
+  INDEX idx_status (status),
+  INDEX idx_created (created_at),
+  INDEX idx_session (session_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>评价管理 · 上墙审核</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/quiz.css">
+  <style>
+    .fb-wrap { max-width: 960px; margin: 2rem auto; padding: 0 1.25rem 3rem; }
+    .fb-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+    .fb-card h1 { font-size: 1.35rem; color: var(--accent); margin-bottom: 0.35rem; }
+    .fb-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem; }
+    .fb-login { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+    .fb-login input, .fb-login select { padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-cn); }
+    .fb-login input { flex: 1; min-width: 160px; }
+    .fb-login button { padding: 0.55rem 1rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: var(--font-cn); }
+    .fb-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .fb-table th, .fb-table td { border: 1px solid var(--border); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; word-break: break-word; }
+    .fb-table th { background: var(--accent-light); color: var(--accent); }
+    .fb-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .fb-actions button { padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-family: var(--font-cn); }
+    .fb-feature { color: var(--accent); border-color: var(--accent) !important; }
+    .fb-display-name { width: 100%; max-width: 7rem; padding: 0.25rem 0.4rem; font-size: 0.78rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-cn); }
+    .fb-err { color: var(--accent-2); font-size: 0.88rem; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="fb-wrap">
+    <div class="fb-card">
+      <h1>评价管理</h1>
+      <p class="fb-sub">查看用户提交的反馈，挑选优质评价<strong>上墙</strong>。口令与 stats.html 相同（<code>ADMIN_STATS_TOKEN</code>）。</p>
+      <div class="fb-login">
+        <input type="password" id="fb-token" placeholder="管理口令" autocomplete="off">
+        <select id="fb-filter">
+          <option value="pending">待审核</option>
+          <option value="featured">已上墙</option>
+          <option value="hidden">已隐藏</option>
+          <option value="all">全部</option>
+        </select>
+        <button type="button" id="fb-load">加载</button>
+      </div>
+      <p class="fb-err hidden" id="fb-err"></p>
+      <div id="fb-body" class="hidden">
+        <table class="fb-table" id="fb-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>评分</th>
+              <th>内容</th>
+              <th>用户</th>
+              <th>展示名</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <p style="font-size:0.82rem;"><a href="index.html">← 返回网站</a> · <a href="stats.html">访问统计</a></p>
+  </div>
+  <script src="js/site-config.js"></script>
+  <script src="js/feedback-admin.js"></script>
+</body>
+</html>
