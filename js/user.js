@@ -34,20 +34,34 @@ const UserAuth = {
     return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
   },
 
-  async request(path, options = {}) {
-    const res = await fetch(SiteConfig.apiUrl(path), {
-      ...options,
-      headers: { ...this.authHeaders(), ...(options.headers || {}) }
-    });
-    let body = null;
-    try { body = await res.json(); } catch { body = null; }
-    if (!res.ok) {
-      const err = new Error(body?.message || body?.error || `HTTP ${res.status}`);
-      err.code = body?.error || "request_failed";
-      err.status = res.status;
-      throw err;
+  async request(path, options = {}, timeoutMs = 20000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(SiteConfig.apiUrl(path), {
+        ...options,
+        signal: controller.signal,
+        headers: { ...this.authHeaders(), ...(options.headers || {}) }
+      });
+      let body = null;
+      try { body = await res.json(); } catch { body = null; }
+      if (!res.ok) {
+        const err = new Error(body?.message || body?.error || `HTTP ${res.status}`);
+        err.code = body?.error || "request_failed";
+        err.status = res.status;
+        throw err;
+      }
+      return body;
+    } catch (e) {
+      if (e.name === "AbortError") {
+        const err = new Error("request timeout");
+        err.code = "request_timeout";
+        throw err;
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
     }
-    return body;
   },
 
   async register(username, password) {

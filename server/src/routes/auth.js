@@ -44,7 +44,7 @@ router.post("/register", async (req, res) => {
       return res.status(409).json({ error: "username_taken", message: "用户名已被占用" });
     }
     console.error("register error", e.message);
-    res.status(503).json({ error: "storage_unavailable" });
+    res.status(503).json({ error: "storage_unavailable", hint: e.message });
   }
 });
 

@@ -52,7 +52,9 @@ const UserUI = {
       user_not_found: t("auth.errNotFound"),
       register_failed: t("auth.errServer"),
       login_failed: t("auth.errServer"),
-      request_failed: t("auth.errServer")
+      request_failed: t("auth.errServer"),
+      request_timeout: t("auth.errTimeout"),
+      storage_unavailable: t("auth.errStorage")
     };
     return map[code] || fallback || t("auth.errServer");
   },
@@ -119,30 +121,37 @@ const UserUI = {
       submitBtn.disabled = true;
       submitBtn.textContent = t("auth.loading");
 
-      let res;
-      if (cloud) {
-        const username = usernameInput.value.trim();
-        const password = passwordInput?.value || "";
-        res = currentMode === "register"
-          ? await UserStore.registerAccount(username, password)
-          : await UserStore.loginAccount(username, password);
-      } else {
-        res = UserStore.create(usernameInput.value);
-      }
+      try {
+        let res;
+        if (cloud) {
+          const username = usernameInput.value.trim();
+          const password = passwordInput?.value || "";
+          res = currentMode === "register"
+            ? await UserStore.registerAccount(username, password)
+            : await UserStore.loginAccount(username, password);
+        } else {
+          res = UserStore.create(usernameInput.value);
+        }
 
-      submitBtn.disabled = false;
-      submitBtn.textContent = currentMode === "register" ? t("auth.createAccount") : (cloud ? t("auth.loginBtn") : t("user.create"));
+        if (!res.ok) {
+          err.textContent = this.errorText(res.error, res.message);
+          err.classList.remove("hidden");
+          return;
+        }
 
-      if (!res.ok) {
-        err.textContent = this.errorText(res.error, res.message);
+        modal.classList.remove("open");
+        this.refreshSidebar();
+        if (typeof SiteAnalytics !== "undefined") SiteAnalytics.track();
+        if (onDone) onDone(res.user);
+      } catch (e) {
+        err.textContent = this.errorText(e.code || "request_failed", e.message);
         err.classList.remove("hidden");
-        return;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = currentMode === "register"
+          ? t("auth.createAccount")
+          : (cloud ? t("auth.loginBtn") : t("user.create"));
       }
-
-      modal.classList.remove("open");
-      this.refreshSidebar();
-      if (typeof SiteAnalytics !== "undefined") SiteAnalytics.track();
-      if (onDone) onDone(res.user);
     };
 
     submitBtn.onclick = submit;

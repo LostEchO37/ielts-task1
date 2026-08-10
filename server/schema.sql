@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS accounts (
   id VARCHAR(32) PRIMARY KEY,
   username VARCHAR(32) NOT NULL,
-  password_hash VARCHAR(128) NOT NULL,
+  password_hash VARCHAR(256) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

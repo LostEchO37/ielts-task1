@@ -3,7 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const { getPool, pingDb } = require("./db");
-const { migrate } = require("./migrate");
+const { migrate, checkTables } = require("./migrate");
 const trackRouter = require("./routes/track");
 const statsRouter = require("./routes/stats");
 const authRouter = require("./routes/auth");
@@ -40,7 +40,14 @@ app.get("/", (_req, res) => {
 app.get("/health", async (_req, res) => {
   try {
     await pingDb();
-    res.json({ ok: true, db: "connected" });
+    const tables = await checkTables();
+    const ready = tables.has("accounts") && tables.has("user_records");
+    res.json({
+      ok: ready,
+      db: "connected",
+      tables: [...tables],
+      auth: ready ? "ready" : "missing_tables"
+    });
   } catch (e) {
     res.status(503).json({ ok: false, db: "error", message: e.message });
   }
