@@ -55,6 +55,10 @@
       });
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 401) {
+          showErr("口令错误。请输入 Vercel 环境变量 ADMIN_STATS_TOKEN 里设的那串密码。");
+          return;
+        }
         showErr(data.hint || data.error || `加载失败 (${res.status})`);
         return;
       }

@@ -145,7 +145,7 @@ const Settings = {
       d.textContent = t("disclaimer");
       document.body.appendChild(d);
     }
-    if (!document.querySelector("script[data-site-config]")) {
+    if (!document.querySelector("script[data-site-config], script[src*='site-config.js']")) {
       const cfg = document.createElement("script");
       cfg.src = `${this.rootPrefix()}js/site-config.js`;
       cfg.dataset.siteConfig = "1";

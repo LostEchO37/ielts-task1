@@ -38,22 +38,16 @@ const SiteAnalytics = {
   },
 
   send(payload) {
-    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) return;
+    if (typeof SiteConfig === "undefined" || !(SiteConfig.apiBase || "").trim()) return;
     const url = this.apiUrl("/api/track");
     const body = JSON.stringify(payload);
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([body], { type: "application/json" });
-        if (navigator.sendBeacon(url, blob)) return;
-      }
-      fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true,
-        mode: "cors"
-      }).catch(() => {});
-    } catch { /* ignore */ }
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+      mode: "cors"
+    }).catch(() => {});
   },
 
   trackEvent(eventType, extra) {
@@ -77,11 +71,29 @@ const SiteAnalytics = {
 
   init() {
     if (location.pathname.endsWith("stats.html")) return;
+    if (location.pathname.endsWith("feedback-admin.html")) return;
     if (document.visibilityState === "prerender") return;
-    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) return;
-    if (document.readyState === "complete") this.track();
-    else window.addEventListener("load", () => this.track(), { once: true });
+    if (typeof SiteConfig === "undefined" || !(SiteConfig.apiBase || "").trim()) return;
+    const run = () => this.track();
+    if (document.readyState === "complete") run();
+    else window.addEventListener("load", run, { once: true });
   }
 };
 
-SiteAnalytics.init();
+function bootSiteAnalytics() {
+  if (typeof SiteConfig !== "undefined" && (SiteConfig.apiBase || "").trim()) {
+    SiteAnalytics.init();
+    return;
+  }
+  window.addEventListener("load", () => {
+    if (typeof SiteConfig !== "undefined" && (SiteConfig.apiBase || "").trim()) {
+      SiteAnalytics.init();
+    }
+  }, { once: true });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootSiteAnalytics);
+} else {
+  bootSiteAnalytics();
+}
