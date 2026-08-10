@@ -3,6 +3,13 @@
 
 const CHANGELOG = [
   {
+    version: '3.2.1',
+    date: '2026-08-10',
+    items: [
+      'API 接入 Vercel；访问统计 stats.html 现已可用',
+    ],
+  },
+  {
     version: '3.2.0',
     date: '2026-08-10',
     items: [
