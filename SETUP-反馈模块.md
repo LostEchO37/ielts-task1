@@ -21,7 +21,7 @@
 
 如果 **已经部署过** Render API，跳过这步，只要 **重新 Deploy 一次**（让新表 `feedback` 自动创建）。
 
-如果 **还没部署过**，按 **`SETUP-Koyeb.md`**（推荐，不用绑卡）或 `SETUP-用户系统.md` 注册 Aiven + 部署。
+如果 **还没部署过**，按 **`SETUP-Zeabur.md`** 部署（Aiven + Zeabur，不用绑卡）。
 
 - `MYSQL_HOST`
 - `MYSQL_USER`
