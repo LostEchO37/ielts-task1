@@ -174,4 +174,24 @@
   .cover-bg-cursor {
     animation: none;
   }
+
+  .cover-hub-main,
+  .cover-hub-sub {
+    transition: none;
+  }
+
+  .cover-hub-stage.is-expanded .cover-hub-main {
+    display: none;
+  }
+
+  .cover-hub-sub {
+    opacity: 1;
+    transform: none;
+    position: relative;
+    pointer-events: auto;
+  }
+
+  .cover-hub-stage:not(.is-expanded) .cover-hub-sub {
+    display: none;
+  }
 }

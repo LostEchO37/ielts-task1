@@ -31,7 +31,7 @@
   <div class="stats-wrap">
     <div class="stats-card">
       <h1>访问统计</h1>
-      <p class="stats-sub">需在 Netlify 环境变量中设置 <code>ADMIN_STATS_TOKEN</code>，仅管理员可查看。</p>
+      <p class="stats-sub">数据存于 MySQL。在 Render 环境变量设置 <code>ADMIN_STATS_TOKEN</code>，并在 <code>js/site-config.js</code> 填写 API 地址。</p>
       <div class="stats-login">
         <input type="password" id="stats-token" placeholder="管理口令" autocomplete="off">
         <button type="button" id="stats-load">加载数据</button>
@@ -45,12 +45,17 @@
         </div>
         <h3 style="font-size:0.95rem;margin:0.75rem 0 0.5rem;color:var(--accent);">页面热度</h3>
         <table class="stats-table" id="top-pages"><thead><tr><th>页面</th><th>次数</th></tr></thead><tbody></tbody></table>
-        <h3 style="font-size:0.95rem;margin:1rem 0 0.5rem;color:var(--accent);">最近访问</h3>
-        <table class="stats-table" id="visit-log"><thead><tr><th>时间</th><th>页面</th><th>来源</th><th>设备</th><th>用户</th></tr></thead><tbody></tbody></table>
+        <h3 style="font-size:0.95rem;margin:1rem 0 0.5rem;color:var(--accent);">事件类型</h3>
+        <table class="stats-table" id="event-counts"><thead><tr><th>事件</th><th>次数</th></tr></thead><tbody></tbody></table>
+        <h3 style="font-size:0.95rem;margin:1rem 0 0.5rem;color:var(--accent);">活跃用户</h3>
+        <table class="stats-table" id="top-users"><thead><tr><th>昵称</th><th>次数</th></tr></thead><tbody></tbody></table>
+        <h3 style="font-size:0.95rem;margin:1rem 0 0.5rem;color:var(--accent);">最近记录</h3>
+        <table class="stats-table" id="visit-log"><thead><tr><th>时间</th><th>事件</th><th>页面</th><th>来源</th><th>设备</th><th>用户</th></tr></thead><tbody></tbody></table>
       </div>
     </div>
     <p style="font-size:0.82rem;"><a href="index.html">← 返回网站</a></p>
   </div>
+  <script src="js/site-config.js"></script>
   <script src="js/stats-page.js"></script>
 </body>
 </html>

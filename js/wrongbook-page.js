@@ -5,7 +5,8 @@ const WB_MODULE_KEYS = {
   language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
   static_step1: "static.nav.step1", static_step2: "static.nav.step2",
   static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
-  static_formulas: "static.nav.formulas"
+  static_formulas: "static.nav.formulas",
+  t2_method: "task2.nav.method"
 };
 
 function stripHtml(html) {

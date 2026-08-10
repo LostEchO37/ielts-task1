@@ -1,4 +1,4 @@
-/* 访问统计 — 上报至 Netlify Function（本地开发时静默失败） */
+/* 访问统计 — 上报至 MySQL API（GitHub Pages + Render 等） */
 
 const SiteAnalytics = {
   sessionKey: "ielts-analytics-session",
@@ -24,18 +24,22 @@ const SiteAnalytics = {
     return "";
   },
 
-  track() {
-    const userName = this.currentUserName();
-    const payload = {
-      page: location.pathname + location.search,
-      referrer: document.referrer || "",
-      lang: navigator.language || "",
-      vw: window.innerWidth,
-      vh: window.innerHeight,
-      session: this.sessionId(),
-      user: userName
-    };
-    const url = "/api/track";
+  detectModule() {
+    const p = location.pathname;
+    if (p.includes("/static/")) return "static";
+    return "dynamic";
+  },
+
+  apiUrl(path) {
+    if (typeof SiteConfig !== "undefined" && SiteConfig.apiUrl) {
+      return SiteConfig.apiUrl(path);
+    }
+    return path.startsWith("/") ? path : `/${path}`;
+  },
+
+  send(payload) {
+    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) return;
+    const url = this.apiUrl("/api/track");
     const body = JSON.stringify(payload);
     try {
       if (navigator.sendBeacon) {
@@ -46,14 +50,35 @@ const SiteAnalytics = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
-        keepalive: true
+        keepalive: true,
+        mode: "cors"
       }).catch(() => {});
     } catch { /* ignore */ }
+  },
+
+  trackEvent(eventType, extra) {
+    this.send({
+      event: eventType,
+      page: location.pathname + location.search,
+      referrer: document.referrer || "",
+      lang: navigator.language || "",
+      vw: window.innerWidth,
+      vh: window.innerHeight,
+      session: this.sessionId(),
+      user: this.currentUserName(),
+      module: this.detectModule(),
+      extra: extra || null
+    });
+  },
+
+  track() {
+    this.trackEvent("pageview");
   },
 
   init() {
     if (location.pathname.endsWith("stats.html")) return;
     if (document.visibilityState === "prerender") return;
+    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) return;
     if (document.readyState === "complete") this.track();
     else window.addEventListener("load", () => this.track(), { once: true });
   }

@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const file = location.pathname.split('/').pop();
   if (file && file !== 'index.html' && file !== 'stats.html') {
     const inStatic = /\/static\//.test(location.pathname);
-    const rel = inStatic ? `static/${file}` : file;
+    const inTask2 = /\/task2\//.test(location.pathname);
+    const inHandbook = /\/handbook\//.test(location.pathname);
+    const rel = inStatic ? `static/${file}` : inTask2 ? `task2/${file}` : inHandbook ? `handbook/${file}` : file;
     try { localStorage.setItem('ielts-last-module', rel); } catch { /* ignore */ }
   }
 });

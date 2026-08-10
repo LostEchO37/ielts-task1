@@ -5,7 +5,8 @@ const QUIZ_MODULE_KEYS = {
   language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
   static_step1: "static.nav.step1", static_step2: "static.nav.step2",
   static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
-  static_formulas: "static.nav.formulas"
+  static_formulas: "static.nav.formulas",
+  t2_method: "task2.nav.method"
 };
 
 function renderCollection(u, colKey) {
@@ -27,7 +28,9 @@ function renderCollection(u, colKey) {
   const masterEarned = u.badges.includes(masterId);
   const masterLabel = colKey === "task1_static"
     ? t("badge.static_all_modules.masterLabel")
-    : t("badge.all_modules.masterLabel");
+    : colKey === "task2_type1"
+      ? t("badge.t2_all_modules.masterLabel")
+      : t("badge.all_modules.masterLabel");
 
   return `
     <div class="card">
@@ -85,8 +88,10 @@ function renderProfile() {
         <div class="stat-box"><strong>${u.badges.length}</strong><span data-i18n="profile.badges">已获得</span></div>
       </div>
       <div class="user-actions">
-        <button type="button" class="primary" id="btn-switch-user" data-i18n="user.switch">切换用户</button>
-        <button type="button" id="btn-new-user" data-i18n="user.newUser">新建用户</button>
+        ${UserStore.isCloudUser()
+          ? `<button type="button" class="primary" id="btn-logout" data-i18n="auth.logout">退出登录</button>`
+          : `<button type="button" class="primary" id="btn-switch-user" data-i18n="user.switch">切换用户</button>
+             <button type="button" id="btn-new-user" data-i18n="user.newUser">新建用户</button>`}
       </div>
     </div>
 
@@ -105,8 +110,10 @@ function renderProfile() {
 
   Settings.apply();
 
+  const btnLogout = document.getElementById("btn-logout");
   const btnSwitch = document.getElementById("btn-switch-user");
   const btnNew = document.getElementById("btn-new-user");
+  if (btnLogout) btnLogout.onclick = () => UserUI.confirmLogout(() => renderProfile());
   if (btnSwitch) btnSwitch.onclick = () => showUserSwitcher();
   if (btnNew) btnNew.onclick = () => UserUI.showOnboarding(() => renderProfile());
 

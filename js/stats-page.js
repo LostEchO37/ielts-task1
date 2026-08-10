@@ -9,6 +9,13 @@
   const saved = sessionStorage.getItem(TOKEN_KEY);
   if (saved) tokenInput.value = saved;
 
+  function apiUrl(path) {
+    if (typeof SiteConfig !== "undefined" && SiteConfig.apiUrl) {
+      return SiteConfig.apiUrl(path);
+    }
+    return path;
+  }
+
   function showErr(msg) {
     errEl.textContent = msg;
     errEl.classList.remove("hidden");
@@ -37,9 +44,13 @@
       showErr("请输入管理口令");
       return;
     }
+    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) {
+      showErr("请先在 js/site-config.js 中配置 apiBase（Render API 地址）");
+      return;
+    }
     errEl.classList.add("hidden");
     try {
-      const res = await fetch("/api/stats?limit=200", {
+      const res = await fetch(apiUrl("/api/stats?limit=200"), {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -55,18 +66,33 @@
 
       const topTb = document.querySelector("#top-pages tbody");
       topTb.innerHTML = data.topPages.map((r) =>
-        `<tr><td>${r.page}</td><td>${r.count}</td></tr>`
+        `<tr><td>${esc(r.page)}</td><td>${r.count}</td></tr>`
       ).join("") || `<tr><td colspan="2">暂无数据</td></tr>`;
+
+      const evTb = document.querySelector("#event-counts tbody");
+      if (evTb && data.eventCounts) {
+        evTb.innerHTML = data.eventCounts.map((r) =>
+          `<tr><td>${esc(r.event)}</td><td>${r.count}</td></tr>`
+        ).join("") || `<tr><td colspan="2">暂无</td></tr>`;
+      }
+
+      const userTb = document.querySelector("#top-users tbody");
+      if (userTb && data.topUsers) {
+        userTb.innerHTML = data.topUsers.map((r) =>
+          `<tr><td>${esc(r.user)}</td><td>${r.count}</td></tr>`
+        ).join("") || `<tr><td colspan="2">暂无</td></tr>`;
+      }
 
       const logTb = document.querySelector("#visit-log tbody");
       logTb.innerHTML = data.visits.map((v) => {
         const t = v.ts ? v.ts.replace("T", " ").slice(0, 19) : "—";
         const ref = v.referrer ? v.referrer.replace(/^https?:\/\//, "").slice(0, 48) : "直接访问";
         const user = v.user ? esc(v.user) : "未登录";
-        return `<tr><td>${t}</td><td>${esc(v.page)}</td><td>${esc(ref)}</td><td>${uaShort(v.ua)}</td><td>${user}</td></tr>`;
-      }).join("") || `<tr><td colspan="5">暂无记录</td></tr>`;
+        const ev = v.event ? esc(v.event) : "pageview";
+        return `<tr><td>${t}</td><td>${ev}</td><td>${esc(v.page)}</td><td>${esc(ref)}</td><td>${uaShort(v.ua)}</td><td>${user}</td></tr>`;
+      }).join("") || `<tr><td colspan="6">暂无记录</td></tr>`;
     } catch {
-      showErr("存储未就绪 (storage_unavailable)。请在 Netlify 开启 Blobs 并配置 NETLIFY_BLOB_READ_WRITE_TOKEN，然后重新部署。");
+      showErr("无法连接 API。请确认 Render 服务已启动、MySQL 已配置，且 site-config.js 中 apiBase 正确。");
     }
   }
 

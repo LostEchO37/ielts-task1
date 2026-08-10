@@ -1,5 +1,90 @@
 /* 用户 · 答题历史 · 错题本 · 勋章（每知识点全难度通关 = 1 枚） */
 
+if (typeof SiteConfig === "undefined") {
+  window.SiteConfig = {
+    apiBase: "",
+    apiUrl(path) {
+      const p = path.startsWith("/") ? path : `/${path}`;
+      const base = (this.apiBase || "").replace(/\/$/, "");
+      return base ? `${base}${p}` : p;
+    }
+  };
+}
+
+const UserAuth = {
+  TOKEN_KEY: "ielts-auth-token",
+
+  cloudEnabled() {
+    return !!(SiteConfig.apiBase || "").trim();
+  },
+
+  getToken() {
+    try { return localStorage.getItem(this.TOKEN_KEY) || ""; } catch { return ""; }
+  },
+
+  setToken(token) {
+    try {
+      if (token) localStorage.setItem(this.TOKEN_KEY, token);
+      else localStorage.removeItem(this.TOKEN_KEY);
+    } catch { /* ignore */ }
+  },
+
+  authHeaders() {
+    const token = this.getToken();
+    return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+  },
+
+  async request(path, options = {}) {
+    const res = await fetch(SiteConfig.apiUrl(path), {
+      ...options,
+      headers: { ...this.authHeaders(), ...(options.headers || {}) }
+    });
+    let body = null;
+    try { body = await res.json(); } catch { body = null; }
+    if (!res.ok) {
+      const err = new Error(body?.message || body?.error || `HTTP ${res.status}`);
+      err.code = body?.error || "request_failed";
+      err.status = res.status;
+      throw err;
+    }
+    return body;
+  },
+
+  async register(username, password) {
+    const res = await this.request("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
+    this.setToken(res.token);
+    return res;
+  },
+
+  async login(username, password) {
+    const res = await this.request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
+    this.setToken(res.token);
+    return res;
+  },
+
+  async fetchRemoteData() {
+    const res = await this.request("/api/auth/data");
+    return res.data || {};
+  },
+
+  async pushRemoteData(data) {
+    await this.request("/api/auth/data", {
+      method: "PUT",
+      body: JSON.stringify({ data })
+    });
+  },
+
+  logout() {
+    this.setToken("");
+  }
+};
+
 const BADGE_COLLECTIONS = {
   task1_dynamic: {
     key: "task1_dynamic",
@@ -27,6 +112,15 @@ const BADGE_COLLECTIONS = {
       static_formulas: { icon: "🏆", color: "#6b4d9e" },
       all_modules: { icon: "👑", color: "#d4af37" }
     }
+  },
+  task2_type1: {
+    key: "task2_type1",
+    titleKey: "collection.task2_type1",
+    moduleIds: ["t2_method"],
+    badges: {
+      t2_method: { icon: "⚖️", color: "#5b4d8a" },
+      all_modules: { icon: "👑", color: "#d4af37" }
+    }
   }
 };
 
@@ -34,6 +128,7 @@ const MODULE_IDS = BADGE_COLLECTIONS.task1_dynamic.moduleIds;
 
 function collectionForModule(moduleId) {
   if (!moduleId) return BADGE_COLLECTIONS.task1_dynamic;
+  if (moduleId.startsWith("t2_")) return BADGE_COLLECTIONS.task2_type1;
   if (moduleId.startsWith("static_")) return BADGE_COLLECTIONS.task1_static;
   return BADGE_COLLECTIONS.task1_dynamic;
 }
@@ -62,6 +157,153 @@ function badgeId(collectionKey, badgeKey) {
 
 const UserStore = {
   KEY: "ielts-users-v1",
+  _syncTimer: null,
+  _syncPending: false,
+
+  emptyUser(id, name) {
+    return {
+      id, name,
+      createdAt: new Date().toISOString(),
+      history: [], wrongBook: {}, mastered: {}, masteredModules: {},
+      badges: [], badgeWall: [], simulations: {}
+    };
+  },
+
+  extractData(u) {
+    return {
+      history: u.history || [],
+      wrongBook: u.wrongBook || {},
+      mastered: u.mastered || {},
+      masteredModules: u.masteredModules || {},
+      badges: u.badges || [],
+      badgeWall: u.badgeWall || [],
+      simulations: u.simulations || {}
+    };
+  },
+
+  applyData(u, data) {
+    u.history = data.history || [];
+    u.wrongBook = data.wrongBook || {};
+    u.mastered = data.mastered || {};
+    u.masteredModules = data.masteredModules || {};
+    u.badges = data.badges || [];
+    u.badgeWall = data.badgeWall || [];
+    u.simulations = data.simulations || {};
+  },
+
+  scheduleSync() {
+    if (!UserAuth.cloudEnabled() || !UserAuth.getToken()) return;
+    this._syncPending = true;
+    clearTimeout(this._syncTimer);
+    this._syncTimer = setTimeout(() => this.flushSync(), 800);
+  },
+
+  async flushSync() {
+    if (!this._syncPending || !UserAuth.cloudEnabled() || !UserAuth.getToken()) return;
+    const u = this.current();
+    if (!u) return;
+    this._syncPending = false;
+    try {
+      await UserAuth.pushRemoteData(this.extractData(u));
+    } catch (e) {
+      console.warn("User sync failed:", e.message);
+      this._syncPending = true;
+    }
+  },
+
+  async restoreSession() {
+    if (!UserAuth.cloudEnabled() || !UserAuth.getToken()) return false;
+    try {
+      const me = await UserAuth.request("/api/auth/me");
+      const remote = await UserAuth.fetchRemoteData();
+      const data = this.load();
+      if (!data.users) data.users = {};
+      const user = this.emptyUser(me.user.id, me.user.name);
+      if (me.user.createdAt) user.createdAt = me.user.createdAt;
+      this.applyData(user, remote);
+      data.users[me.user.id] = user;
+      data.currentUserId = me.user.id;
+      this.migrateUser(user);
+      clearTimeout(this._syncTimer);
+      this._syncPending = false;
+      localStorage.setItem(this.KEY, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      if (e.status === 401) UserAuth.logout();
+      return false;
+    }
+  },
+
+  async registerAccount(username, password) {
+    const trimmed = (username || "").trim();
+    if (!trimmed || trimmed.length < 3 || trimmed.length > 16) {
+      return { ok: false, error: "invalid_username" };
+    }
+    if (!password || password.length < 6) {
+      return { ok: false, error: "invalid_password" };
+    }
+
+    if (UserAuth.cloudEnabled()) {
+      try {
+        const res = await UserAuth.register(trimmed, password);
+        const data = this.load();
+        if (!data.users) data.users = {};
+        const localData = this.current() ? this.extractData(this.current()) : {};
+        const user = this.emptyUser(res.user.id, res.user.name);
+        this.applyData(user, localData);
+        data.users[res.user.id] = user;
+        data.currentUserId = res.user.id;
+        this.migrateUser(user);
+        this.save(data);
+        await UserAuth.pushRemoteData(this.extractData(user));
+        return { ok: true, user };
+      } catch (e) {
+        return { ok: false, error: e.code || "register_failed", message: e.message };
+      }
+    }
+
+    return this.create(trimmed);
+  },
+
+  async loginAccount(username, password) {
+    const trimmed = (username || "").trim();
+    if (!trimmed || !password) return { ok: false, error: "invalid_credentials" };
+
+    if (UserAuth.cloudEnabled()) {
+      try {
+        const res = await UserAuth.login(trimmed, password);
+        const remote = await UserAuth.fetchRemoteData();
+        const data = this.load();
+        if (!data.users) data.users = {};
+        data.users[res.user.id] = this.emptyUser(res.user.id, res.user.name);
+        this.applyData(data.users[res.user.id], remote);
+        data.currentUserId = res.user.id;
+        this.migrateUser(data.users[res.user.id]);
+        this.save(data);
+        return { ok: true, user: data.users[res.user.id] };
+      } catch (e) {
+        return { ok: false, error: e.code || "login_failed", message: e.message };
+      }
+    }
+
+    const match = this.listUsers().find((u) => u.name === trimmed);
+    if (match) {
+      this.switchUser(match.id);
+      return { ok: true, user: match };
+    }
+    return { ok: false, error: "user_not_found" };
+  },
+
+  logout() {
+    UserAuth.logout();
+    const data = this.load();
+    data.currentUserId = null;
+    this.save(data);
+  },
+
+  isCloudUser() {
+    return UserAuth.cloudEnabled() && !!UserAuth.getToken();
+  },
 
   load() {
     try {
@@ -132,6 +374,7 @@ const UserStore = {
 
   save(data) {
     localStorage.setItem(this.KEY, JSON.stringify(data));
+    this.scheduleSync();
   },
 
   currentId() {
@@ -149,12 +392,7 @@ const UserStore = {
     const data = this.load();
     if (!data.users) data.users = {};
     const id = "u_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-    data.users[id] = {
-      id, name: trimmed,
-      createdAt: new Date().toISOString(),
-      history: [], wrongBook: {}, mastered: {}, masteredModules: {},
-      badges: [], badgeWall: [], simulations: {}
-    };
+    data.users[id] = this.emptyUser(id, trimmed);
     data.currentUserId = id;
     this.save(data);
     return { ok: true, user: data.users[id] };
@@ -316,16 +554,17 @@ const UserStore = {
   getBadgeTitle(fullId) {
     const p = parseBadgeId(fullId);
     if (p.isMaster) {
-      return p.collection === "task1_static"
-        ? t("badge.static_all_modules.title")
-        : t("badge.all_modules.title");
+      if (p.collection === "task1_static") return t("badge.static_all_modules.title");
+      if (p.collection === "task2_type1") return t("badge.t2_all_modules.title");
+      return t("badge.all_modules.title");
     }
     const keys = {
       step1: "nav.step1", step2: "nav.step2", step3: "nav.step3",
       language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
       static_step1: "static.nav.step1", static_step2: "static.nav.step2",
       static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
-      static_formulas: "static.nav.formulas"
+      static_formulas: "static.nav.formulas",
+      t2_method: "task2.nav.method"
     };
     return t(`badge.${p.moduleId}.title`) || t(keys[p.moduleId] || p.moduleId);
   },
@@ -333,9 +572,9 @@ const UserStore = {
   getBadgeDesc(fullId) {
     const p = parseBadgeId(fullId);
     if (p.isMaster) {
-      return p.collection === "task1_static"
-        ? t("badge.static_all_modules.desc")
-        : t("badge.all_modules.desc");
+      if (p.collection === "task1_static") return t("badge.static_all_modules.desc");
+      if (p.collection === "task2_type1") return t("badge.t2_all_modules.desc");
+      return t("badge.all_modules.desc");
     }
     return t(`badge.${p.moduleId}.desc`) || t("badge.module.desc");
   },

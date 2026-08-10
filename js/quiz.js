@@ -5,8 +5,13 @@ const QUIZ_MODULE_KEYS = {
   language: "nav.language", bonus: "nav.bonus", formulas: "nav.formulas",
   static_step1: "static.nav.step1", static_step2: "static.nav.step2",
   static_step3: "static.nav.step3", static_bonus: "static.nav.bonus",
-  static_formulas: "static.nav.formulas"
+  static_formulas: "static.nav.formulas",
+  t2_method: "task2.nav.method"
 };
+
+function quizMeme(type, id) {
+  return typeof MemePool !== "undefined" ? MemePool.html(type, id) : "";
+}
 
 const QuizEngine = {
   module: null,
@@ -167,7 +172,7 @@ const QuizEngine = {
       const sel = document.querySelector('input[name="ans"]:checked');
       if (!sel) {
         fb.className = "quiz-feedback show warn";
-        fb.innerHTML = `${MemePool.html("wrong", "warn")}<div class="fb-text">${t("quiz.warn.pick")}</div>`;
+        fb.innerHTML = `${quizMeme("wrong", "warn")}<div class="fb-text">${t("quiz.warn.pick")}</div>`;
         return;
       }
       correct = parseInt(sel.value, 10) === q.answer;
@@ -175,7 +180,7 @@ const QuizEngine = {
       const sel = document.querySelector('input[name="ans"]:checked');
       if (!sel) {
         fb.className = "quiz-feedback show warn";
-        fb.innerHTML = `${MemePool.html("wrong", "warn2")}<div class="fb-text">${t("quiz.warn.judge")}</div>`;
+        fb.innerHTML = `${quizMeme("wrong", "warn2")}<div class="fb-text">${t("quiz.warn.judge")}</div>`;
         return;
       }
       correct = (sel.value === "true") === q.answer;
@@ -183,7 +188,7 @@ const QuizEngine = {
       const userVal = document.querySelector(".quiz-fill").value.trim().toLowerCase();
       if (!userVal) {
         fb.className = "quiz-feedback show warn";
-        fb.innerHTML = `${MemePool.html("wrong", "warn3")}<div class="fb-text">${t("quiz.warn.fill")}</div>`;
+        fb.innerHTML = `${quizMeme("wrong", "warn3")}<div class="fb-text">${t("quiz.warn.fill")}</div>`;
         return;
       }
       const answers = Array.isArray(q.answer) ? q.answer : [q.answer];
@@ -203,7 +208,7 @@ const QuizEngine = {
     }
     UserUI.refreshSidebar();
 
-    const memeHtml = MemePool.html(correct ? "correct" : "wrong", q.id);
+    const memeHtml = quizMeme(correct ? "correct" : "wrong", q.id);
     const msg = loc(correct ? q.feedbackCorrect : q.feedbackWrong);
     const explain = Settings.get("lang") === "zh-TW"
       ? Settings.convertHtmlToTraditional(q.explain) : q.explain;
@@ -233,12 +238,22 @@ const QuizEngine = {
 
     UserStore.recordSession(this.moduleId, this.difficulty, this.score, total, qIds);
 
+    if (typeof SiteAnalytics !== "undefined") {
+      SiteAnalytics.trackEvent("quiz_complete", {
+        moduleId: this.moduleId,
+        difficulty: this.difficulty,
+        score: this.score,
+        total,
+        pct
+      });
+    }
+
     let msgKey = "quiz.result.low";
     if (pct === 100) msgKey = "quiz.result.perfect";
     else if (pct >= 75) msgKey = "quiz.result.good";
     else if (pct >= 50) msgKey = "quiz.result.mid";
 
-    const memeHtml = MemePool.html(pct >= 75 ? "correct" : "wrong", "result-" + pct);
+    const memeHtml = quizMeme(pct >= 75 ? "correct" : "wrong", "result-" + pct);
     const badgeHtml = this.newBadges.length
       ? `<div class="result-badges">${this.newBadges.map((k) => {
           const meta = UserStore.getBadgeMeta(k);

@@ -5,7 +5,20 @@ const SimEngine = {
   _bound: false,
 
   simLabel(sim, index) {
-    return sim.isStatic ? t("static.sim.label") : t("sim.label");
+    if (sim.isTask2 && sim.typeKey) {
+      const n = SIMULATIONS.filter((s) => s.typeKey === sim.typeKey).indexOf(sim) + 1;
+      return t("task2.sim.promptLabel", { n });
+    }
+    if (sim.isTask2) return t("task2.sim.label");
+    if (sim.isStatic) return t("static.sim.label");
+    return t("sim.label");
+  },
+
+  task2TypeTitle(typeKey) {
+    const type = typeof TASK2_SIM_TYPES !== "undefined"
+      ? TASK2_SIM_TYPES.find((x) => x.id === typeKey)
+      : null;
+    return type ? t(type.titleKey) : typeKey;
   },
 
   simSubtitle(title) {
@@ -13,6 +26,9 @@ const SimEngine = {
   },
 
   simHeading(sim, index) {
+    if (sim.isTask2 && sim.typeKey) {
+      return `${this.task2TypeTitle(sim.typeKey)} · ${this.simSubtitle(sim.title)}`;
+    }
     return `${this.simLabel(sim, index)} ${index + 1} · ${this.simSubtitle(sim.title)}`;
   },
 
@@ -59,22 +75,58 @@ const SimEngine = {
       return;
     }
     this.renderPicker();
+    const hash = location.hash.replace(/^#/, "");
+    if (hash && SIMULATIONS.some((s) => s.id === hash)) {
+      this.openSim(hash);
+    }
   },
 
   renderPicker() {
     this.currentId = null;
     const el = document.getElementById("sim-content");
     if (!el) return;
+    if (SIMULATIONS[0]?.isTask2 && typeof TASK2_SIM_TYPES !== "undefined") {
+      this.renderTask2Picker(el);
+      return;
+    }
     el.innerHTML = `
       <div class="card">
         <h2 data-i18n="sim.pick">选择一套模拟题</h2>
-        <p class="sim-note" data-i18n="sim.note">含真实图表 · 仿雅思题干 · 提交后获得语法与笔记知识点改进建议（不估分）</p>
+        <p class="sim-note" data-i18n="${SIMULATIONS[0]?.isTask2 ? "task2.sim.note" : "sim.note"}">${SIMULATIONS[0]?.isTask2 ? t("task2.sim.note") : t("sim.note")}</p>
         <div class="sim-picker">${SIMULATIONS.map((s, i) => `
           <button type="button" class="sim-pick-btn" data-id="${s.id}">
             <strong>${SimEngine.simLabel(s, i)} ${i + 1}</strong>
             <span>${SimEngine.simSubtitle(s.title)}</span>
           </button>`).join("")}
         </div>
+      </div>`;
+    Settings.apply();
+  },
+
+  renderTask2Picker(el) {
+    const groups = TASK2_SIM_TYPES.map((type) => {
+      const sims = SIMULATIONS.filter((s) => s.typeKey === type.id);
+      if (!sims.length) return "";
+      const tag = type.live
+        ? `<span class="module-tag live">${t("cover.live")}</span>`
+        : `<span class="module-tag pending">${t("cover.pending")}</span>`;
+      const btns = sims.map((s, i) => `
+        <button type="button" class="sim-pick-btn" data-id="${s.id}">
+          <strong>${t("task2.sim.promptLabel", { n: i + 1 })}</strong>
+          <span>${SimEngine.simSubtitle(s.title)}</span>
+        </button>`).join("");
+      return `
+        <div class="sim-type-group" id="sim-type-${type.id}">
+          <div class="sim-type-head">${tag}<h3>${t(type.titleKey)}</h3></div>
+          <div class="sim-picker">${btns}</div>
+        </div>`;
+    }).join("");
+
+    el.innerHTML = `
+      <div class="card">
+        <h2 data-i18n="sim.pick">选择一套模拟题</h2>
+        <p class="sim-note" data-i18n="task2.sim.note">${t("task2.sim.note")}</p>
+        <div class="sim-type-groups">${groups}</div>
       </div>`;
     Settings.apply();
   },
@@ -92,11 +144,9 @@ const SimEngine = {
         <button type="button" class="sim-back" id="sim-back">← ${t("sim.back")}</button>
         <h2>${this.simHeading(sim, simIndex)}</h2>
         <div class="sim-prompt en-block">${sim.prompt.replace(/\n/g, "<br>")}</div>
-        <div class="chart-wrap sim-chart">
-          <img src="${sim.chart}" alt="${sim.chartAlt}">
-        </div>
+        ${sim.chart ? `<div class="chart-wrap sim-chart"><img src="${sim.chart}" alt="${sim.chartAlt || ""}"></div>` : ""}
         <label class="sim-write-label" data-i18n="sim.write">你的作文（英文）</label>
-        <textarea class="sim-textarea" id="sim-text" rows="14" spellcheck="true" lang="en" placeholder="${t("sim.placeholder")}">${draft}</textarea>
+        <textarea class="sim-textarea" id="sim-text" rows="14" spellcheck="true" lang="en" placeholder="${sim.isTask2 ? t("task2.sim.placeholder") : t("sim.placeholder")}">${draft}</textarea>
         <div class="sim-wordcount"><span id="sim-wc">0</span> ${t("sim.words")}</div>
         <p class="sim-save-hint">${t("sim.saveHint")}</p>
         <button type="button" class="sim-submit" id="sim-submit">${t("sim.review")}</button>
@@ -114,6 +164,14 @@ const SimEngine = {
   review(sim, text) {
     const fb = document.getElementById("sim-feedback");
     if (!fb) return;
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    if (typeof SiteAnalytics !== "undefined") {
+      SiteAnalytics.trackEvent("sim_review", {
+        simId: sim.id,
+        wordCount: words,
+        isStatic: !!sim.isStatic
+      });
+    }
     const report = this.analyse(text, sim);
     fb.innerHTML = `
       <div class="card sim-feedback">
@@ -131,6 +189,7 @@ const SimEngine = {
   },
 
   analyse(text, sim) {
+    if (sim.isTask2) return this.analyseTask2(text, sim);
     if (sim.isStatic) return this.analyseStatic(text, sim);
     const raw = text.trim();
     const lower = raw.toLowerCase();
@@ -297,6 +356,142 @@ const SimEngine = {
     else numItems.push(t("static.sim.fb.numMiss"));
     sections.push({ icon: "🔢", title: t("static.sim.fb.numbers"), ok: /\d+/.test(raw), items: numItems });
 
+    return sections;
+  },
+
+  analyseTask2(text, sim) {
+    const key = sim.typeKey || "211";
+    if (key === "212") return this.analyseTask2_212(text, sim);
+    if (key === "221") return this.analyseTask2_221(text, sim);
+    if (key === "222") return this.analyseTask2_222(text, sim);
+    if (key === "23") return this.analyseTask2_23(text, sim);
+    return this.analyseTask2_211(text, sim);
+  },
+
+  task2BaseSections(text, sim) {
+    const raw = text.trim();
+    const lower = raw.toLowerCase();
+    const wc = raw.split(/\s+/).filter(Boolean).length;
+    const minW = sim.minWords || 250;
+    const sections = [];
+
+    const lengthItems = [];
+    if (wc < minW - 30) lengthItems.push(t("task2.sim.fb.tooShort", { n: minW }));
+    else if (wc < minW) lengthItems.push(t("task2.sim.fb.nearMin", { n: wc, min: minW }));
+    else lengthItems.push(t("task2.sim.fb.lengthOk", { n: wc }));
+    sections.push({ icon: "📏", title: t("sim.fb.length"), ok: wc >= minW, items: lengthItems });
+
+    const gramItems = SimLint.checkGrammar(raw);
+    const gramOk = gramItems.length === 0;
+    if (gramOk) gramItems.push(t("sim.fb.grammarClean"));
+    sections.push({ icon: "✏️", title: t("sim.fb.grammar"), ok: gramOk, items: gramItems });
+
+    const spellErrors = SimLint.checkSpelling(raw);
+    const spellItems = spellErrors.length
+      ? spellErrors.map((e) => e.suggestion ? t("sim.fb.spellErr", { word: e.word, sug: e.suggestion }) : t("sim.fb.spellUnknown", { word: e.word }))
+      : [t("sim.fb.spellOk")];
+    sections.push({ icon: "🔤", title: t("sim.fb.spelling"), ok: !spellErrors.length, items: spellItems });
+
+    const topicHits = (sim.topics || []).filter((w) => lower.includes(w.toLowerCase()));
+    const topicItems = topicHits.length >= 2
+      ? [t("task2.sim.fb.topicOk", { n: topicHits.length })]
+      : [t("task2.sim.fb.topicMiss")];
+    sections.push({ icon: "🎯", title: t("task2.sim.fb.topic"), ok: topicHits.length >= 2, items: topicItems });
+
+    return { sections, raw, lower, wc };
+  },
+
+  analyseTask2_211(text, sim) {
+    const { sections, lower } = this.task2BaseSections(text, sim);
+
+    const thesisItems = [];
+    const hasThesis = /i would argue|i believe|in my opinion|it is argued|from my perspective|i am convinced/.test(lower);
+    const hasBothViews = /some people|others believe|while others|on the one hand|on the other hand|discuss both/.test(lower);
+    if (hasThesis) thesisItems.push(t("task2.sim.fb.thesisOk"));
+    else thesisItems.push(t("task2.sim.fb.thesisMiss"));
+    if (hasBothViews) thesisItems.push(t("task2.sim.fb.viewsOk"));
+    else thesisItems.push(t("task2.sim.fb.viewsMiss"));
+    sections.splice(1, 0, { icon: "📝", title: t("task2.sim.fb.position"), ok: hasThesis, items: thesisItems });
+
+    const structItems = [];
+    const concede = /undeniably|admittedly|it is true that|while it is/.test(lower);
+    const turn = /nevertheless|however|on the other hand|yet|still/.test(lower);
+    const add = /in addition|furthermore|moreover|what is more/.test(lower);
+    if (concede) structItems.push(t("task2.sim.fb.concedeOk"));
+    else structItems.push(t("task2.sim.fb.concedeMiss"));
+    if (turn) structItems.push(t("task2.sim.fb.turnOk"));
+    else structItems.push(t("task2.sim.fb.turnMiss"));
+    if (add) structItems.push(t("task2.sim.fb.addOk"));
+    else structItems.push(t("task2.sim.fb.addMiss"));
+    sections.splice(2, 0, { icon: "⚖️", title: t("task2.sim.fb.structure"), ok: concede && turn, items: structItems });
+
+    const argItems = [];
+    const hasChain = /(if|by|through|therefore|thus|as a result|lead to|result in)/.test(lower);
+    const hasRebut = /(little relevance|cannot deliver|short-term|consume.*time|however|whereas|while)/.test(lower);
+    if (hasChain) argItems.push(t("task2.sim.fb.chainOk"));
+    else argItems.push(t("task2.sim.fb.chainMiss"));
+    if (hasRebut) argItems.push(t("task2.sim.fb.rebutOk"));
+    else argItems.push(t("task2.sim.fb.rebutMiss"));
+    sections.splice(3, 0, { icon: "🔗", title: t("task2.sim.fb.argument"), ok: hasChain && hasRebut, items: argItems });
+
+    return sections;
+  },
+
+  analyseTask2_212(text, sim) {
+    const { sections, lower } = this.task2BaseSections(text, sim);
+    const items = [];
+    const bothSides = /on the one hand|on the other hand|both|each|equally|merit|value|benefit/.test(lower);
+    const noExtreme = !/completely wrong|entirely useless|only one|must choose/i.test(lower);
+    if (bothSides) items.push(t("task2.sim.fb212.bothOk"));
+    else items.push(t("task2.sim.fb212.bothMiss"));
+    if (noExtreme) items.push(t("task2.sim.fb212.balanceOk"));
+    else items.push(t("task2.sim.fb212.balanceMiss"));
+    sections.splice(1, 0, { icon: "⚖️", title: t("task2.sim.fb212.title"), ok: bothSides && noExtreme, items });
+    return sections;
+  },
+
+  analyseTask2_221(text, sim) {
+    const { sections, lower } = this.task2BaseSections(text, sim);
+    const items = [];
+    const hasStance = /i (?:strongly )?(?:agree|disagree|partly agree|partly disagree)|to a large extent|to some extent|in my opinion|i believe/.test(lower);
+    const hasReason = /because|since|therefore|thus|as a result|lead to|for example|for instance/.test(lower);
+    if (hasStance) items.push(t("task2.sim.fb221.stanceOk"));
+    else items.push(t("task2.sim.fb221.stanceMiss"));
+    if (hasReason) items.push(t("task2.sim.fb221.reasonOk"));
+    else items.push(t("task2.sim.fb221.reasonMiss"));
+    sections.splice(1, 0, { icon: "📝", title: t("task2.sim.fb221.title"), ok: hasStance && hasReason, items });
+    return sections;
+  },
+
+  analyseTask2_222(text, sim) {
+    const { sections, lower } = this.task2BaseSections(text, sim);
+    const items = [];
+    const hasAdv = /advantage|benefit|positive|helpful|convenient|enable/.test(lower);
+    const hasDis = /disadvantage|drawback|negative|problem|harm|risk|concern/.test(lower);
+    const hasJudge = /outweigh|balance|overall|on balance|more significant|less important/.test(lower);
+    if (hasAdv) items.push(t("task2.sim.fb222.advOk"));
+    else items.push(t("task2.sim.fb222.advMiss"));
+    if (hasDis) items.push(t("task2.sim.fb222.disOk"));
+    else items.push(t("task2.sim.fb222.disMiss"));
+    if (hasJudge) items.push(t("task2.sim.fb222.judgeOk"));
+    else items.push(t("task2.sim.fb222.judgeMiss"));
+    sections.splice(1, 0, { icon: "⚖️", title: t("task2.sim.fb222.title"), ok: hasAdv && hasDis && hasJudge, items });
+    return sections;
+  },
+
+  analyseTask2_23(text, sim) {
+    const { sections, lower } = this.task2BaseSections(text, sim);
+    const items = [];
+    const hasCause = /cause|reason|because|due to|result from|lead to|factor/.test(lower);
+    const hasSolution = /solution|measure|suggest|should|could|need to|action|policy|way to/.test(lower);
+    const hasTwoPart = /first|second|on the one hand|causes|solutions|measures|problems/.test(lower);
+    if (hasCause) items.push(t("task2.sim.fb23.causeOk"));
+    else items.push(t("task2.sim.fb23.causeMiss"));
+    if (hasSolution) items.push(t("task2.sim.fb23.solutionOk"));
+    else items.push(t("task2.sim.fb23.solutionMiss"));
+    if (hasTwoPart) items.push(t("task2.sim.fb23.twoPartOk"));
+    else items.push(t("task2.sim.fb23.twoPartMiss"));
+    sections.splice(1, 0, { icon: "📋", title: t("task2.sim.fb23.title"), ok: hasCause && hasSolution, items });
     return sections;
   }
 };

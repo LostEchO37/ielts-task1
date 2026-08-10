@@ -12,7 +12,9 @@ const Settings = {
   defaults: { lang: "zh-CN", theme: "light", meme: true },
 
   rootPrefix() {
-    return location.pathname.includes("/static/") ? "../" : "";
+    const p = location.pathname;
+    if (p.includes("/static/") || p.includes("/task2/") || p.includes("/handbook/")) return "../";
+    return "";
   },
 
   get(key) {
@@ -133,6 +135,12 @@ const Settings = {
       d.textContent = t("disclaimer");
       document.body.appendChild(d);
     }
+    if (!document.querySelector("script[data-site-config]")) {
+      const cfg = document.createElement("script");
+      cfg.src = `${this.rootPrefix()}js/site-config.js`;
+      cfg.dataset.siteConfig = "1";
+      document.body.appendChild(cfg);
+    }
     if (!document.querySelector("script[data-analytics]")) {
       const s = document.createElement("script");
       s.src = `${this.rootPrefix()}js/analytics.js`;
@@ -149,17 +157,52 @@ const Settings = {
       panel.id = "reward-panel";
       document.body.appendChild(panel);
     }
+    const qrSrc = `${this.rootPrefix()}assets/wechat-reward.jpg`;
+    const rewardLink = (typeof SiteConfig !== "undefined" && SiteConfig.rewardLink) || "";
+    const inWechat = /MicroMessenger/i.test(navigator.userAgent);
     panel.innerHTML = `
       <div class="reward-backdrop"></div>
       <div class="reward-sheet">
         <button type="button" class="reward-close" aria-label="close">&times;</button>
         <h3 data-i18n="reward.title">${t("reward.title")}</h3>
-        <img class="reward-qr" src="${this.rootPrefix()}assets/wechat-reward.jpg" alt="微信收款码">
-        <p class="reward-caption" data-i18n="reward.caption">${t("reward.caption")}</p>
+        ${rewardLink ? `<a class="reward-quick-link" href="${rewardLink}" target="_blank" rel="noopener noreferrer" data-i18n="reward.quickLink">${t("reward.quickLink")}</a>` : ""}
+        <p class="reward-caption reward-caption-top" data-i18n="reward.caption">${t("reward.caption")}</p>
+        <img class="reward-qr" src="${qrSrc}" alt="微信收款码">
+        <button type="button" class="reward-save-btn" data-i18n="reward.saveBtn">${t("reward.saveBtn")}</button>
+        <ol class="reward-steps">
+          <li data-i18n="reward.step1">${t("reward.step1")}</li>
+          <li data-i18n="reward.step2">${t("reward.step2")}</li>
+          <li data-i18n="reward.step3">${t("reward.step3")}</li>
+        </ol>
+        ${inWechat ? `<p class="reward-wechat-tip" data-i18n="reward.wechatTip">${t("reward.wechatTip")}</p>` : ""}
       </div>`;
     panel.classList.add("open");
     panel.querySelector(".reward-backdrop").onclick = () => this.closeReward();
     panel.querySelector(".reward-close").onclick = () => this.closeReward();
+    panel.querySelector(".reward-save-btn").onclick = () => this.saveRewardQr(qrSrc);
+  },
+
+  async saveRewardQr(src) {
+    const btn = document.querySelector(".reward-save-btn");
+    try {
+      const res = await fetch(src);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "037-wechat-reward.jpg";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = t("reward.saved");
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      }
+    } catch {
+      window.open(src, "_blank");
+    }
   },
 
   closeReward() {
@@ -239,6 +282,7 @@ const Settings = {
 
     if (typeof PageTransition !== "undefined") {
       PageTransition.initEnter();
+      PageTransition.initBackFix();
       return;
     }
 
@@ -247,7 +291,10 @@ const Settings = {
     const script = document.createElement("script");
     script.src = `${root}js/page-transition.js`;
     script.dataset.pageTransition = "1";
-    script.onload = () => PageTransition.initEnter();
+    script.onload = () => {
+      PageTransition.initEnter();
+      PageTransition.initBackFix();
+    };
     script.onerror = () => {
       document.documentElement.classList.remove("ielts-enter-boot");
       document.body.classList.remove("page-entering", "page-enter-active");

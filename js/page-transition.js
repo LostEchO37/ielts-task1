@@ -58,5 +58,35 @@ const PageTransition = {
     });
 
     window.setTimeout(cleanup, this.ENTER_MS + 150);
+  },
+
+  reset() {
+    document.body.classList.remove("page-exiting", "page-entering", "page-enter-active");
+    document.documentElement.classList.remove("ielts-enter-boot");
+    document.querySelector(".page-enter-veil")?.remove();
+    try { sessionStorage.removeItem(this.KEY); } catch { /* ignore */ }
+  },
+
+  initBackFix() {
+    if (this._backFixReady) return;
+    this._backFixReady = true;
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted || document.body.classList.contains("page-exiting")) this.reset();
+    });
+    window.addEventListener("popstate", () => {
+      window.setTimeout(() => {
+        if (document.body.classList.contains("page-exiting") ||
+            document.documentElement.classList.contains("ielts-enter-boot") ||
+            document.querySelector(".page-enter-veil:not(.reveal)")) {
+          this.reset();
+        }
+      }, 0);
+    });
   }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  PageTransition.initBackFix();
+});
+
+PageTransition.initBackFix();
