@@ -68,20 +68,26 @@ const Feedback = {
     const bases = typeof SiteConfig.allApiBases === "function"
       ? SiteConfig.allApiBases()
       : [((SiteConfig.apiBase || "").replace(/\/$/, "") || "")];
-    let lastErr;
+    let lastRes = null;
     for (let i = 0; i < bases.length; i++) {
       const base = bases[i];
       try {
         const res = await fetch(SiteConfig.apiUrl(path, base), options);
-        if (res.ok && typeof SiteConfig.cacheApiBase === "function") SiteConfig.cacheApiBase(base);
-        if (res.ok || res.status < 500) return res;
-        lastErr = new Error(`HTTP ${res.status}`);
+        if (res.ok) {
+          if (typeof SiteConfig.cacheApiBase === "function") SiteConfig.cacheApiBase(base);
+          return res;
+        }
+        const failover = typeof SiteConfig.shouldFailoverStatus === "function"
+          ? SiteConfig.shouldFailoverStatus(res.status)
+          : (res.status >= 500);
+        if (!failover || i === bases.length - 1) return res;
+        lastRes = res;
       } catch (e) {
-        lastErr = e;
         if (i === bases.length - 1) throw e;
       }
     }
-    throw lastErr || new Error("request failed");
+    if (lastRes) return lastRes;
+    throw new Error("request failed");
   },
 
   async loadWall() {

@@ -41,6 +41,7 @@ const UserAuth = {
     if (!error) return true;
     if (error.name === "AbortError" || error.code === "request_timeout") return true;
     if (error.code === "request_failed" || error.code === "register_failed" || error.code === "login_failed") return true;
+    if (typeof SiteConfig.shouldFailoverStatus === "function" && SiteConfig.shouldFailoverStatus(error.status)) return true;
     if (error.status >= 500) return true;
     return false;
   },

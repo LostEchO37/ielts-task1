@@ -2,8 +2,8 @@
 
 const SiteConfig = {
   /**
-   * 优先走本站同源 /api/*（Netlify 服务端反代 → Vercel，大陆用户浏览器不直连 Vercel）。
-   * 留空 apiBase 且 sameOriginApi=true 时，请求发往当前域名下的 /api/…
+   * Netlify 部署时优先走同源 /api/*（服务端反代 → Vercel，大陆用户不直连 vercel.app）。
+   * GitHub Pages 纯静态，不支持 POST /api/*，运行时自动跳过同源。
    */
   sameOriginApi: true,
 
@@ -21,6 +21,17 @@ const SiteConfig = {
   /** 可选：爱发电/赞赏外链 */
   rewardLink: "",
 
+  supportsSameOriginApi() {
+    if (typeof location === "undefined") return false;
+    const h = location.hostname.toLowerCase();
+    return h.endsWith(".netlify.app") || h === "netlify.app";
+  },
+
+  shouldFailoverStatus(status) {
+    return status === 404 || status === 405 || status === 408 || status === 429
+      || status === 502 || status === 503 || status === 504 || status >= 500;
+  },
+
   apiEnabled() {
     return !!(this.sameOriginApi || (this.apiBase || "").trim() || (this.apiMirrors || []).length);
   },
@@ -32,19 +43,34 @@ const SiteConfig = {
       if (!bases.includes(norm)) bases.push(norm);
     };
 
+    const canSameOrigin = this.sameOriginApi && this.supportsSameOriginApi();
+
     try {
       const cached = localStorage.getItem(this.API_BASE_CACHE_KEY);
-      if (cached !== null) add(cached === "__same__" ? "" : cached);
+      if (cached !== null) {
+        const cachedBase = cached === "__same__" ? "" : cached;
+        if (cachedBase === "" && !canSameOrigin) {
+          this.clearApiBaseCache();
+        } else {
+          add(cachedBase);
+        }
+      }
     } catch { /* ignore */ }
 
-    if ((this.apiBase || "").trim()) add(this.apiBase);
-    else if (this.sameOriginApi) add("");
+    if (canSameOrigin) {
+      if ((this.apiBase || "").trim()) add(this.apiBase);
+      else add("");
+      (this.apiMirrors || []).forEach(add);
+    } else {
+      if ((this.apiBase || "").trim()) add(this.apiBase);
+      (this.apiMirrors || []).forEach(add);
+    }
 
-    (this.apiMirrors || []).forEach(add);
     return bases;
   },
 
   cacheApiBase(base) {
+    if (base === "" && !this.supportsSameOriginApi()) return;
     try {
       localStorage.setItem(this.API_BASE_CACHE_KEY, base === "" ? "__same__" : base);
     } catch { /* ignore */ }
