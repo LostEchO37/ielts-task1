@@ -34,6 +34,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/feedback"
+  to = "https://ielts-task1.vercel.app/api/feedback"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/feedback/*"
   to = "https://ielts-task1.vercel.app/api/feedback/:splat"
   status = 200

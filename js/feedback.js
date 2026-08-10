@@ -64,10 +64,30 @@ const Feedback = {
     </article>`;
   },
 
+  async apiFetch(path, options = {}) {
+    const bases = typeof SiteConfig.allApiBases === "function"
+      ? SiteConfig.allApiBases()
+      : [((SiteConfig.apiBase || "").replace(/\/$/, "") || "")];
+    let lastErr;
+    for (let i = 0; i < bases.length; i++) {
+      const base = bases[i];
+      try {
+        const res = await fetch(SiteConfig.apiUrl(path, base), options);
+        if (res.ok && typeof SiteConfig.cacheApiBase === "function") SiteConfig.cacheApiBase(base);
+        if (res.ok || res.status < 500) return res;
+        lastErr = new Error(`HTTP ${res.status}`);
+      } catch (e) {
+        lastErr = e;
+        if (i === bases.length - 1) throw e;
+      }
+    }
+    throw lastErr || new Error("request failed");
+  },
+
   async loadWall() {
     if (this.apiEnabled()) {
       try {
-        const res = await fetch(this.apiUrl("/api/feedback/wall"));
+        const res = await this.apiFetch("/api/feedback/wall");
         if (res.ok) {
           const data = await res.json();
           return (data.items || []).map((x) => ({
@@ -168,7 +188,7 @@ const Feedback = {
         const displayName = user || (nicknameEl ? nicknameEl.value.trim() : "");
         msg.classList.add("hidden");
         try {
-          const res = await fetch(this.apiUrl("/api/feedback"), {
+          const res = await this.apiFetch("/api/feedback", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
