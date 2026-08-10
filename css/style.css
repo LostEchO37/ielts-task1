@@ -536,13 +536,10 @@ body:has(.quiz-fab):has(.page-disclaimer) .cross-module-back {
 }
 
 .cover-hub-sub {
-  position: absolute;
-  inset: 0;
+  display: none;
   opacity: 0;
-  visibility: hidden;
   transform: translateY(10px) scale(0.98);
-  pointer-events: none;
-  transition: opacity 0.38s ease 0.06s, transform 0.38s ease 0.06s, visibility 0s linear 0.44s;
+  transition: opacity 0.38s ease 0.06s, transform 0.38s ease 0.06s;
 }
 
 .cover-hub-stage.is-expanded .cover-hub-main {
@@ -554,12 +551,12 @@ body:has(.quiz-fab):has(.page-disclaimer) .cross-module-back {
 }
 
 .cover-hub-stage.is-expanded .cover-hub-sub {
+  display: block;
   opacity: 1;
-  visibility: visible;
   transform: none;
   pointer-events: auto;
   position: relative;
-  transition: opacity 0.38s ease 0.06s, transform 0.38s ease 0.06s, visibility 0s;
+  transition: opacity 0.38s ease 0.06s, transform 0.38s ease 0.06s;
 }
 
 .cover-hub-sub-head {
