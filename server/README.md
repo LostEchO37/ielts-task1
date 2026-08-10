@@ -40,7 +40,20 @@ GitHub Pages 只能托管静态前端；本目录提供 **Node.js + MySQL** 后�
 mysql -h YOUR_HOST -P YOUR_PORT -u YOUR_USER -p YOUR_DATABASE < schema.sql
 ```
 
-## 2. 部署 API 到 Render（免费）
+## 2. 部署 API（推荐 Koyeb，不用绑卡）
+
+**逐步教程 → [`SETUP-Koyeb.md`](../SETUP-Koyeb.md)**
+
+也可用 Render（需绑信用卡验证）→ 见下方 Render 说明。
+
+### Koyeb 摘要
+
+1. https://www.koyeb.com/ → GitHub 登录  
+2. Create Web Service → `LostEchO37/ielts-task1`，**Root directory = `server`**  
+3. 环境变量：`MYSQL_*`、`MYSQL_SSL=1`、`ADMIN_STATS_TOKEN`、`JWT_SECRET`、`CORS_ORIGINS`  
+4. 验证：`curl https://YOUR-APP.koyeb.app/health`
+
+## 2b. 部署 API 到 Render（需绑卡，可选）
 
 1. 推送代码到 GitHub  
 2. [Render Dashboard](https://dashboard.render.com/) → New → Blueprint 或 Web Service  
