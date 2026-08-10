@@ -13,7 +13,7 @@ const Feedback = {
   },
 
   apiEnabled() {
-    return !!(typeof SiteConfig !== "undefined" && (SiteConfig.apiBase || "").trim());
+    return !!(typeof SiteConfig !== "undefined" && SiteConfig.apiEnabled?.());
   },
 
   apiUrl(path) {

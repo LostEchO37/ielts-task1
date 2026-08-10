@@ -15,6 +15,9 @@ const UserAuth = {
   TOKEN_KEY: "ielts-auth-token",
 
   cloudEnabled() {
+    if (typeof SiteConfig !== "undefined" && typeof SiteConfig.apiEnabled === "function") {
+      return SiteConfig.apiEnabled();
+    }
     return !!(SiteConfig.apiBase || "").trim();
   },
 
@@ -34,11 +37,19 @@ const UserAuth = {
     return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
   },
 
-  async request(path, options = {}, timeoutMs = 20000) {
+  shouldFailover(error) {
+    if (!error) return true;
+    if (error.name === "AbortError" || error.code === "request_timeout") return true;
+    if (error.code === "request_failed" || error.code === "register_failed" || error.code === "login_failed") return true;
+    if (error.status >= 500) return true;
+    return false;
+  },
+
+  async _fetchOnce(base, path, options, timeoutMs) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(SiteConfig.apiUrl(path), {
+      const res = await fetch(SiteConfig.apiUrl(path, base), {
         ...options,
         signal: controller.signal,
         headers: { ...this.authHeaders(), ...(options.headers || {}) }
@@ -62,6 +73,26 @@ const UserAuth = {
     } finally {
       clearTimeout(timer);
     }
+  },
+
+  async request(path, options = {}, timeoutMs = 20000) {
+    const bases = typeof SiteConfig.allApiBases === "function"
+      ? SiteConfig.allApiBases()
+      : [((SiteConfig.apiBase || "").replace(/\/$/, "") || "")];
+
+    let lastErr;
+    for (let i = 0; i < bases.length; i++) {
+      const base = bases[i];
+      try {
+        const result = await this._fetchOnce(base, path, options, timeoutMs);
+        if (typeof SiteConfig.cacheApiBase === "function") SiteConfig.cacheApiBase(base);
+        return result;
+      } catch (e) {
+        lastErr = e;
+        if (!this.shouldFailover(e) || i === bases.length - 1) throw e;
+      }
+    }
+    throw lastErr;
   },
 
   async register(username, password) {

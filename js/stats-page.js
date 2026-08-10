@@ -44,8 +44,8 @@
       showErr("请输入管理口令");
       return;
     }
-    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) {
-      showErr("请先在 js/site-config.js 中配置 apiBase（Render API 地址）");
+    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiEnabled?.()) {
+      showErr("请先在 js/site-config.js 中配置 API（apiBase / apiMirrors / sameOriginApi）");
       return;
     }
     errEl.classList.add("hidden");

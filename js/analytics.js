@@ -38,7 +38,7 @@ const SiteAnalytics = {
   },
 
   send(payload) {
-    if (typeof SiteConfig === "undefined" || !(SiteConfig.apiBase || "").trim()) return;
+    if (typeof SiteConfig === "undefined" || !SiteConfig.apiEnabled?.()) return;
     const url = this.apiUrl("/api/track");
     const body = JSON.stringify(payload);
     fetch(url, {
@@ -73,7 +73,7 @@ const SiteAnalytics = {
     if (location.pathname.endsWith("stats.html")) return;
     if (location.pathname.endsWith("feedback-admin.html")) return;
     if (document.visibilityState === "prerender") return;
-    if (typeof SiteConfig === "undefined" || !(SiteConfig.apiBase || "").trim()) return;
+    if (typeof SiteConfig === "undefined" || !SiteConfig.apiEnabled?.()) return;
     const run = () => this.track();
     if (document.readyState === "complete") run();
     else window.addEventListener("load", run, { once: true });
@@ -81,12 +81,12 @@ const SiteAnalytics = {
 };
 
 function bootSiteAnalytics() {
-  if (typeof SiteConfig !== "undefined" && (SiteConfig.apiBase || "").trim()) {
+  if (typeof SiteConfig !== "undefined" && SiteConfig.apiEnabled?.()) {
     SiteAnalytics.init();
     return;
   }
   window.addEventListener("load", () => {
-    if (typeof SiteConfig !== "undefined" && (SiteConfig.apiBase || "").trim()) {
+    if (typeof SiteConfig !== "undefined" && SiteConfig.apiEnabled?.()) {
       SiteAnalytics.init();
     }
   }, { once: true });

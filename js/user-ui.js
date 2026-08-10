@@ -88,6 +88,7 @@ const UserUI = {
         <p class="user-onboard-hint" data-i18n="user.noRealName">⚠️ 请勿使用真实姓名</p>` : `
         <p class="user-onboard-hint" data-i18n="user.noRealName">⚠️ 请勿使用真实姓名</p>`}
         <p class="user-onboard-error hidden"></p>
+        ${cloud ? `<button type="button" class="auth-local-fallback hidden" data-i18n="auth.useLocal">改用本地模式（无需 VPN，数据仅存本设备）</button>` : ""}
         <button type="button" class="user-onboard-btn auth-submit" data-i18n="${cloud ? (mode === "register" ? "auth.createAccount" : "auth.loginBtn") : "user.create"}">${cloud ? (mode === "register" ? t("auth.createAccount") : t("auth.loginBtn")) : t("user.create")}</button>
       </div>`;
 
@@ -98,6 +99,33 @@ const UserUI = {
     const passwordInput = modal.querySelector(".auth-password");
     const err = modal.querySelector(".user-onboard-error");
     const submitBtn = modal.querySelector(".auth-submit");
+    const localBtn = modal.querySelector(".auth-local-fallback");
+
+    const showLocalOption = () => {
+      if (localBtn) localBtn.classList.remove("hidden");
+    };
+
+    const hideLocalOption = () => {
+      if (localBtn) localBtn.classList.add("hidden");
+    };
+
+    const useLocalMode = () => {
+      hideLocalOption();
+      err.classList.add("hidden");
+      const name = usernameInput.value.trim();
+      const res = UserStore.create(name);
+      if (!res.ok) {
+        err.textContent = this.errorText(res.error, res.message);
+        err.classList.remove("hidden");
+        return;
+      }
+      modal.classList.remove("open");
+      this.refreshSidebar();
+      if (typeof SiteAnalytics !== "undefined") SiteAnalytics.track();
+      if (onDone) onDone(res.user);
+    };
+
+    if (localBtn) localBtn.onclick = useLocalMode;
 
     const setMode = (next) => {
       currentMode = next;
@@ -118,6 +146,7 @@ const UserUI = {
 
     const submit = async () => {
       err.classList.add("hidden");
+      hideLocalOption();
       submitBtn.disabled = true;
       submitBtn.textContent = t("auth.loading");
 
@@ -136,6 +165,9 @@ const UserUI = {
         if (!res.ok) {
           err.textContent = this.errorText(res.error, res.message);
           err.classList.remove("hidden");
+          if (cloud && ["request_timeout", "request_failed", "register_failed", "login_failed", "storage_unavailable"].includes(res.error)) {
+            showLocalOption();
+          }
           return;
         }
 
@@ -146,6 +178,7 @@ const UserUI = {
       } catch (e) {
         err.textContent = this.errorText(e.code || "request_failed", e.message);
         err.classList.remove("hidden");
+        if (cloud) showLocalOption();
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = currentMode === "register"

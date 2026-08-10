@@ -26,6 +26,19 @@
   to = "/.netlify/functions/stats"
   status = 200
 
+# 用户注册/登录/同步 — 服务端反代到 Vercel（大陆浏览器不直连 vercel.app）
+[[redirects]]
+  from = "/api/auth/*"
+  to = "https://ielts-task1.vercel.app/api/auth/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/feedback/*"
+  to = "https://ielts-task1.vercel.app/api/feedback/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
