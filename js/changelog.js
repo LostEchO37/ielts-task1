@@ -3,6 +3,19 @@
 
 const CHANGELOG = [
   {
+    version: '3.3.0',
+    date: '2026-08-10',
+    items: [
+      '【史诗级】云端后端正式上线：Aiven MySQL + Vercel API，网站主址不变',
+      '云端注册 / 登录：进度、勋章、错题本可跨设备同步',
+      '「馈」评价反馈：用户提交 → feedback-admin.html 审核上墙',
+      '访问统计 stats.html 可用：页面热度、事件、用户、访问明细',
+      '修复统计上报在 apiBase 接入前静默失败的问题',
+      '封面首次访问可正常点小作文 / 大作文；勋章展示墙可下架',
+      '部署文档：SETUP-Zeabur / Vercel 等（Render/Koyeb 需绑卡或已停免费）',
+    ],
+  },
+  {
     version: '3.2.1',
     date: '2026-08-10',
     items: [
