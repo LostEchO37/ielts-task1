@@ -3,6 +3,13 @@
 
 const CHANGELOG = [
   {
+    version: '3.1.2',
+    date: '2026-08-10',
+    items: [
+      '修复「我会了」答题反馈 emoji 不显示（不再受设置开关影响，答题必出）',
+    ],
+  },
+  {
     version: '3.1.1',
     date: '2026-08-10',
     items: [
