@@ -33,6 +33,10 @@ app.use(
 
 app.use(express.json({ limit: "32kb" }));
 
+app.get("/", (_req, res) => {
+  res.json({ ok: true, service: "ielts-task1-api", health: "/health" });
+});
+
 app.get("/health", async (_req, res) => {
   try {
     await pingDb();

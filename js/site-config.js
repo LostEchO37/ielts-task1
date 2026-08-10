@@ -6,7 +6,7 @@ const SiteConfig = {
    * 例: "https://ielts-analytics-api.onrender.com"
    * 留空 "" 则用户系统退化为本地昵称模式（无跨设备同步）。
    */
-  apiBase: "",
+  apiBase: "https://ielts-task1.vercel.app",
 
   /** 可选：爱发电/赞赏外链，填了则在打赏弹窗显示「快捷打赏」按钮（手机可一键跳转） */
   rewardLink: "",
