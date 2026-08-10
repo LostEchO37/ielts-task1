@@ -21,7 +21,7 @@
 
 如果 **已经部署过** Render API，跳过这步，只要 **重新 Deploy 一次**（让新表 `feedback` 自动创建）。
 
-如果 **还没部署过**，按 `SETUP-用户系统.md` 注册 db4free，记下：
+如果 **还没部署过**，按 `SETUP-用户系统.md` 注册 **Aiven** 免费 MySQL，记下：
 
 - `MYSQL_HOST`
 - `MYSQL_USER`
@@ -118,7 +118,7 @@ python3 -m http.server 8765
 ## 常见问题
 
 **提交后提示 storage_unavailable**  
-→ Render 连不上 MySQL，检查环境变量；或 db4free 休眠，等一会再试。
+→ Render 连不上 MySQL，检查环境变量、**MYSQL_SSL=1**、端口是否为 Aiven 给的；或 Aiven 休眠，到控制台 Power on
 
 **管理页 401**  
 → 口令和 Render 里 `ADMIN_STATS_TOKEN` 不一致。

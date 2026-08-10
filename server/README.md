@@ -32,11 +32,12 @@ GitHub Pages 只能托管静态前端；本目录提供 **Node.js + MySQL** 后�
 
 | 服务 | 说明 |
 |------|------|
-| [db4free.net](https://www.db4free.net/) | 免费 MySQL，适合小流量 |
-| [Aiven MySQL free](https://aiven.io/) | 有免费套餐 |
+| [Aiven MySQL free](https://aiven.io/free-mysql-database) | 免费托管 MySQL，1GB，需设 `MYSQL_SSL=1` |
+
+> ⚠️ 勿用 db4free.net — 域名已失效。
 
 ```bash
-mysql -h YOUR_HOST -u YOUR_USER -p YOUR_DATABASE < schema.sql
+mysql -h YOUR_HOST -P YOUR_PORT -u YOUR_USER -p YOUR_DATABASE < schema.sql
 ```
 
 ## 2. 部署 API 到 Render（免费）
@@ -45,7 +46,8 @@ mysql -h YOUR_HOST -u YOUR_USER -p YOUR_DATABASE < schema.sql
 2. [Render Dashboard](https://dashboard.render.com/) → New → Blueprint 或 Web Service  
 3. 连接仓库，`Root Directory` = **`server`**  
 4. 环境变量（参考 `.env.example`）：
-   - `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
+   - `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_PORT`
+   - `MYSQL_SSL` — 连 Aiven 填 `1`
    - `ADMIN_STATS_TOKEN` — 管理口令（stats.html 使用）
    - `JWT_SECRET` — 用户登录 token 签名密钥
    - `CORS_ORIGINS` — `https://lostecho37.github.io,http://localhost:8765`
@@ -100,5 +102,5 @@ python3 -m http.server 8765
 
 - **GitHub Pages**：免费  
 - **Render 免费档**：Web Service 有休眠，首次请求可能慢几秒  
-- **MySQL 免费库**：db4free 等，注意容量与休眠策略  
+- **MySQL 免费库**：Aiven 免费档，注意休眠策略  
 - **不使用 Netlify**，不消耗 Netlify credits

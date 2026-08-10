@@ -20,6 +20,8 @@ services:
         sync: false
       - key: MYSQL_DATABASE
         sync: false
+      - key: MYSQL_SSL
+        value: "1"
       - key: ADMIN_STATS_TOKEN
         sync: false
       - key: JWT_SECRET

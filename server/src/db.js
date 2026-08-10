@@ -19,7 +19,10 @@ function getPool() {
     database,
     waitForConnections: true,
     connectionLimit: 5,
-    timezone: "+00:00"
+    timezone: "+00:00",
+    ...(process.env.MYSQL_SSL === "1"
+      ? { ssl: { rejectUnauthorized: false } }
+      : {})
   });
   return pool;
 }
