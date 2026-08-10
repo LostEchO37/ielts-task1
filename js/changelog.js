@@ -3,6 +3,14 @@
 
 const CHANGELOG = [
   {
+    version: '3.1.1',
+    date: '2026-08-10',
+    items: [
+      '恢复「我会了」答题反馈 emoji（大表情 + 文字反馈）',
+      '大作文方法论页补引 memes.js；quiz 引擎增加 emoji 兜底',
+    ],
+  },
+  {
     version: '3.1',
     date: '2026-08-10',
     items: [

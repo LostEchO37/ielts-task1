@@ -10,7 +10,18 @@ const QUIZ_MODULE_KEYS = {
 };
 
 function quizMeme(type, id) {
-  return typeof MemePool !== "undefined" ? MemePool.html(type, id) : "";
+  if (typeof Settings !== "undefined" && !Settings.get("meme")) return "";
+  if (typeof MemePool !== "undefined") return MemePool.html(type, id);
+  const pool = (type === "wrong"
+    ? ["🤡💦", "🫠📉", "😭👍", "🙃🪤", "💀📝", "🐶❓", "😅🔥", "🥲🫠", "🐱❌", "😵‍💫"]
+    : ["🐶👍", "💀🫡", "🔥✨", "🗿👍", "😎🎉", "🥹❤️", "✨🫵", "👑🐸", "🐱👍", "💯🫡"]);
+  let idx = Math.floor(Math.random() * pool.length);
+  if (id) {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    idx = h % pool.length;
+  }
+  return `<div class="fb-meme" aria-hidden="true">${pool[idx]}</div>`;
 }
 
 const QuizEngine = {
