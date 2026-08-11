@@ -96,24 +96,33 @@ const Feedback = {
         const res = await this.apiFetch("/api/feedback/wall");
         if (res.ok) {
           const data = await res.json();
-          return (data.items || []).map((x) => ({
+          const items = (data.items || []).map((x) => ({
             name: x.name,
             rating: x.rating,
             content: x.content
           }));
+          return { items, offline: false };
         }
       } catch { /* fallback below */ }
     }
     try {
       const res = await fetch(`${this.rootPrefix()}js/feedback-wall.json`);
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const items = await res.json();
+        if (Array.isArray(items) && items.length) {
+          return { items, offline: true };
+        }
+      }
     } catch { /* ignore */ }
-    return [];
+    return { items: [], offline: false };
   },
 
-  renderWall(container, items) {
+  renderWall(container, result) {
+    const items = result?.items || result || [];
+    const offline = result?.offline;
     if (!items.length) {
-      container.innerHTML = `<p class="feedback-wall-empty" data-i18n="feedback.wallEmpty">${t("feedback.wallEmpty")}</p>`;
+      const msg = offline ? t("feedback.wallOffline") : t("feedback.wallEmpty");
+      container.innerHTML = `<p class="feedback-wall-empty" data-i18n="${offline ? "feedback.wallOffline" : "feedback.wallEmpty"}">${msg}</p>`;
       return;
     }
     container.innerHTML = items.map((item) => this.cardHtml(item)).join("");
@@ -140,7 +149,7 @@ const Feedback = {
     }
 
     let rating = 5;
-    const items = await this.loadWall();
+    const wall = await this.loadWall();
     const canSubmit = this.apiEnabled();
     const user = this.userName();
 
@@ -177,7 +186,7 @@ const Feedback = {
       </div>`;
 
     panel.classList.add("open");
-    this.renderWall(panel.querySelector("#feedback-wall-list"), items);
+    this.renderWall(panel.querySelector("#feedback-wall-list"), wall);
 
     panel.querySelector(".feedback-backdrop").onclick = () => this.close();
     panel.querySelector(".feedback-close").onclick = () => this.close();

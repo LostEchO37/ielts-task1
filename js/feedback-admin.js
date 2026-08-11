@@ -59,10 +59,13 @@
     }
   }
 
-  function renderRows(items, token) {
+  function renderRows(items, token, status) {
     const tbody = document.querySelector("#fb-table tbody");
+    const countEl = document.getElementById("fb-count");
+    if (countEl) countEl.textContent = items.length ? `共 ${items.length} 条` : "";
     if (!items.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">暂无记录</td></tr>`;
+      const hint = status === "pending" ? t("feedback.adminEmptyPending") : "暂无记录";
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">${hint}</td></tr>`;
       return;
     }
     tbody.innerHTML = items.map((item) => {
@@ -149,7 +152,7 @@
       throw new Error(`加载失败 (${res.status})`);
     }
     const data = await res.json();
-    renderRows(data.items || [], token);
+    renderRows(data.items || [], token, status);
     document.getElementById("fb-body").classList.remove("hidden");
   }
 
@@ -182,5 +185,7 @@
       const token = input.value.trim();
       if (token) load(token).catch((e) => showErr(e.message));
     };
+
+    if (saved) document.getElementById("fb-load").click();
   });
 })();
