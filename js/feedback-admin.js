@@ -3,13 +3,6 @@
 (function () {
   const tokenKey = "ielts-feedback-admin-token";
 
-  function apiUrl(path) {
-    if (typeof SiteConfig !== "undefined" && SiteConfig.apiUrl) {
-      return SiteConfig.apiUrl(path);
-    }
-    return path.startsWith("/") ? path : `/${path}`;
-  }
-
   function showErr(msg) {
     const el = document.getElementById("fb-err");
     el.textContent = msg;
@@ -25,8 +18,34 @@
     return "★".repeat(n) + "☆".repeat(5 - n);
   }
 
+  function apiFetch(path, options = {}) {
+    const bases = typeof SiteConfig.allApiBases === "function"
+      ? SiteConfig.allApiBases()
+      : [((SiteConfig.apiBase || "").replace(/\/$/, "") || "")];
+    let lastRes = null;
+    for (let i = 0; i < bases.length; i++) {
+      const base = bases[i];
+      try {
+        const res = await fetch(SiteConfig.apiUrl(path, base), options);
+        if (res.ok) {
+          if (typeof SiteConfig.cacheApiBase === "function") SiteConfig.cacheApiBase(base);
+          return res;
+        }
+        const failover = typeof SiteConfig.shouldFailoverStatus === "function"
+          ? SiteConfig.shouldFailoverStatus(res.status)
+          : (res.status >= 500);
+        if (!failover || i === bases.length - 1) return res;
+        lastRes = res;
+      } catch (e) {
+        if (i === bases.length - 1) throw e;
+      }
+    }
+    if (lastRes) return lastRes;
+    throw new Error("request failed");
+  }
+
   async function patch(id, body, token) {
-    const res = await fetch(apiUrl(`/api/feedback/${encodeURIComponent(id)}`), {
+    const res = await apiFetch(`/api/feedback/${encodeURIComponent(id)}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -121,8 +140,8 @@
   async function load(token) {
     hideErr();
     const status = document.getElementById("fb-filter").value;
-    const url = apiUrl(`/api/feedback/admin?status=${encodeURIComponent(status)}&limit=100`);
-    const res = await fetch(url, {
+    const url = `/api/feedback/admin?status=${encodeURIComponent(status)}&limit=100`;
+    const res = await apiFetch(url, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) {
@@ -135,8 +154,8 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiBase) {
-      showErr("请先在 js/site-config.js 配置 apiBase");
+    if (typeof SiteConfig !== "undefined" && !SiteConfig.apiEnabled?.()) {
+      showErr("请先在 js/site-config.js 配置 API（apiMirrors 或 apiBase）");
       return;
     }
 

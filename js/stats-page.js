@@ -96,7 +96,7 @@
         return `<tr><td>${t}</td><td>${ev}</td><td>${esc(v.page)}</td><td>${esc(ref)}</td><td>${uaShort(v.ua)}</td><td>${user}</td></tr>`;
       }).join("") || `<tr><td colspan="6">暂无记录</td></tr>`;
     } catch {
-      showErr("无法连接 API。请确认 Vercel 服务正常、MySQL 已配置，且 site-config.js 中 apiBase 正确。");
+      showErr("无法连接 API。请确认 Vercel 服务正常、MySQL 已配置，且 site-config.js 中 API 地址正确。");
     }
   }
 
