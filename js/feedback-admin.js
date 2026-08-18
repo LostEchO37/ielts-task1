@@ -18,7 +18,7 @@
     return "★".repeat(n) + "☆".repeat(5 - n);
   }
 
-  function apiFetch(path, options = {}) {
+  async function apiFetch(path, options = {}) {
     const bases = typeof SiteConfig.allApiBases === "function"
       ? SiteConfig.allApiBases()
       : [((SiteConfig.apiBase || "").replace(/\/$/, "") || "")];
@@ -59,13 +59,31 @@
     }
   }
 
+  const EMPTY_HINTS = {
+    pending: "暂无待审核评价。用户通过右上角「馈」提交后会出现在这里。",
+    featured: "暂无已上墙评价。在「待审核」里挑选后点「上墙」即可展示。",
+    hidden: "暂无已隐藏评价。",
+    all: "暂无评价记录。数据库已连接，但还没有用户提交过反馈。"
+  };
+
+  function emptyHint(status) {
+    if (status === "pending" && typeof t === "function") {
+      try { return t("feedback.adminEmptyPending"); } catch { /* ignore */ }
+    }
+    return EMPTY_HINTS[status] || EMPTY_HINTS.all;
+  }
+
   function renderRows(items, token, status) {
     const tbody = document.querySelector("#fb-table tbody");
     const countEl = document.getElementById("fb-count");
-    if (countEl) countEl.textContent = items.length ? `共 ${items.length} 条` : "";
+    const bodyEl = document.getElementById("fb-body");
+    if (countEl) {
+      countEl.textContent = items.length ? `共 ${items.length} 条` : emptyHint(status);
+      countEl.classList.remove("hidden");
+    }
+    if (bodyEl) bodyEl.classList.remove("hidden");
     if (!items.length) {
-      const hint = status === "pending" ? t("feedback.adminEmptyPending") : "暂无记录";
-      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">${hint}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.25rem">${emptyHint(status)}</td></tr>`;
       return;
     }
     tbody.innerHTML = items.map((item) => {
@@ -148,8 +166,9 @@
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) {
-      if (res.status === 401) throw new Error("口令错误");
-      throw new Error(`加载失败 (${res.status})`);
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) throw new Error("口令错误，请核对 Vercel 环境变量 ADMIN_STATS_TOKEN");
+      throw new Error(data.error || data.message || `加载失败 (${res.status})`);
     }
     const data = await res.json();
     renderRows(data.items || [], token, status);
@@ -166,18 +185,28 @@
     const saved = sessionStorage.getItem(tokenKey);
     if (saved) input.value = saved;
 
-    document.getElementById("fb-load").onclick = async () => {
+    const loadBtn = document.getElementById("fb-load");
+    loadBtn.onclick = async () => {
       const token = input.value.trim();
       if (!token) {
         showErr("请输入管理口令");
         return;
       }
+      const prevLabel = loadBtn.textContent;
+      loadBtn.disabled = true;
+      loadBtn.textContent = "加载中…";
+      hideErr();
       try {
         sessionStorage.setItem(tokenKey, token);
         await load(token);
       } catch (e) {
         showErr(e.message || "无法连接 API");
         document.getElementById("fb-body").classList.add("hidden");
+        const countEl = document.getElementById("fb-count");
+        if (countEl) countEl.classList.add("hidden");
+      } finally {
+        loadBtn.disabled = false;
+        loadBtn.textContent = prevLabel;
       }
     };
 
@@ -186,6 +215,6 @@
       if (token) load(token).catch((e) => showErr(e.message));
     };
 
-    if (saved) document.getElementById("fb-load").click();
+    if (saved) loadBtn.click();
   });
 })();
